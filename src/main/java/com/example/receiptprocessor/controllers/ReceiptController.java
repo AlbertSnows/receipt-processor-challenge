@@ -1,12 +1,13 @@
 package com.example.receiptprocessor.controllers;
 
+import com.example.receiptprocessor.data.entities.Receipt;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/receipts")
-public class Receipt {
+public class ReceiptController {
 	@PostMapping("/process")
 	public ResponseEntity<Void> recordReceipt(@RequestBody Receipt receipt) {
 		// Implement logic to store the receipt data in the database
@@ -22,6 +23,4 @@ public class Receipt {
 		Integer points = 100;
 		return ResponseEntity.ok(points);
 	}
-
-
 }
