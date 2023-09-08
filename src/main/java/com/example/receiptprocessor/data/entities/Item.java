@@ -1,8 +1,6 @@
 package com.example.receiptprocessor.data.entities;
 
 import jakarta.persistence.*;
-import org.hibernate.annotations.GenericGenerator;
-import org.hibernate.annotations.Type;
 
 import java.math.BigDecimal;
 import java.util.UUID;
@@ -14,6 +12,10 @@ public class Item {
 	@GeneratedValue
 	@Column(columnDefinition = "uuid")
 	private UUID id;
+
+	@Column(name = "short_description")
 	private String shortDescription;
+
+	@Column(name = "price")
 	private BigDecimal price;
 }
