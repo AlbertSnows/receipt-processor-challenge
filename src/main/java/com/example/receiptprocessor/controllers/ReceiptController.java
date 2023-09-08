@@ -43,7 +43,7 @@ public class ReceiptController {
 //						"total", "currency",
 //						"items", "array");
 		// Specify the path to your JSON file
-		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/item.json");
+		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
 		try {
 			// Read JSON from the file and map it to a Java object
 			var schemaString = Files.readString(jsonFile);

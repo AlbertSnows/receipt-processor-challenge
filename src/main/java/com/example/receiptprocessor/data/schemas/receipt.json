@@ -1,0 +1,25 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "retailer": {
+      "type": "string"
+    },
+    "purchaseDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "purchaseTime": {
+      "type": "string",
+      "format": "time"
+    },
+    "total": {
+      "type": "string",
+      "format": "currency"
+    },
+    "items": {
+      "type": "array"
+    }
+  },
+  "required": ["retailer", "purchaseDate", "purchaseTime", "total", "items"]
+}
