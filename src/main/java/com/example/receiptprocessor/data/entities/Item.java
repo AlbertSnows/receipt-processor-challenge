@@ -11,7 +11,7 @@ public class Item {
 	@Id
 	@GeneratedValue
 	@Column(columnDefinition = "uuid")
-	private final UUID id;
+	private UUID id;
 
 	@Column(name = "short_description")
 	private final String shortDescription;
@@ -19,8 +19,7 @@ public class Item {
 	@Column(name = "price")
 	private final BigDecimal price;
 
-	public Item(UUID id, String shortDescription, BigDecimal price) {
-		this.id = id;
+	public Item(String shortDescription, BigDecimal price) {
 		this.shortDescription = shortDescription;
 		this.price = price;
 	}

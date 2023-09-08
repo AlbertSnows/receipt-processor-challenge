@@ -10,7 +10,7 @@ public class ReceiptItems {
 
 	@Id
 	@GeneratedValue
-	private final UUID id;
+	private UUID id;
 
 	@ManyToOne
 	@JoinColumn(name = "item_id")
@@ -20,8 +20,7 @@ public class ReceiptItems {
 	@JoinColumn(name = "receipt_id")
 	private final Receipt receipt;
 
-	public ReceiptItems(UUID id, Item item, Receipt receipt) {
-		this.id = id;
+	public ReceiptItems(Item item, Receipt receipt) {
 		this.item = item;
 		this.receipt = receipt;
 	}
