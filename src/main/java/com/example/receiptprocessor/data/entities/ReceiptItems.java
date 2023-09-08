@@ -2,7 +2,6 @@ package com.example.receiptprocessor.data.entities;
 
 import jakarta.persistence.*;
 
-import java.math.BigDecimal;
 import java.util.UUID;
 
 @Entity
@@ -20,5 +19,11 @@ public class ReceiptItems {
 	@ManyToOne
 	@JoinColumn(name = "receipt_id")
 	private Receipt receipt;
+
+	public ReceiptItems(UUID id, Item item, Receipt receipt) {
+		this.id = id;
+		this.item = item;
+		this.receipt = receipt;
+	}
 
 }

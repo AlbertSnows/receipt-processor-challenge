@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
-import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -19,4 +18,12 @@ public class Receipt {
 	private LocalDate purchaseDate;
 	private LocalTime purchaseTime;
 	private BigDecimal total;
+
+	public Receipt(UUID id, String retailer, LocalDate purchaseDate, LocalTime purchaseTime, BigDecimal total) {
+		this.id = id;
+		this.retailer = retailer;
+		this.purchaseDate = purchaseDate;
+		this.purchaseTime = purchaseTime;
+		this.total = total;
+	}
 }

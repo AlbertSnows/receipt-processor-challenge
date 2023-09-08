@@ -18,4 +18,10 @@ public class Item {
 
 	@Column(name = "price")
 	private BigDecimal price;
+
+	public Item(UUID id, String shortDescription, BigDecimal price) {
+		this.id = id;
+		this.shortDescription = shortDescription;
+		this.price = price;
+	}
 }
