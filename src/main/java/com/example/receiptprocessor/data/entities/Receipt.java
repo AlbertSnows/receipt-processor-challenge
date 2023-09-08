@@ -19,5 +19,5 @@ public class Receipt {
 	private LocalDate purchaseDate;
 	private LocalTime purchaseTime;
 	private BigDecimal total;
-	private List<Item> items;
+//	private List<Item> items;
 }
