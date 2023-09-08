@@ -13,11 +13,11 @@ public class Receipt {
 	@Id
 	@GeneratedValue
 	@Column(columnDefinition = "uuid")
-	private UUID id;
-	private String retailer;
-	private LocalDate purchaseDate;
-	private LocalTime purchaseTime;
-	private BigDecimal total;
+	private final UUID id;
+	private final String retailer;
+	private final LocalDate purchaseDate;
+	private final LocalTime purchaseTime;
+	private final BigDecimal total;
 
 	public Receipt(UUID id, String retailer, LocalDate purchaseDate, LocalTime purchaseTime, BigDecimal total) {
 		this.id = id;
