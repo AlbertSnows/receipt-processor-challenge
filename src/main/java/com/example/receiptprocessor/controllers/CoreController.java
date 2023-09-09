@@ -19,7 +19,7 @@ public class CoreController {
 	@RequestMapping("/entry")
 	public ResponseEntity<Map<String, String>> entry () {
 		logger.info("Hit entry endpoint!");
-		var message = "API entry point! Go to /receipts, it has the information you're probably looking for.";
+		var message = "API entry point! Relevant endpoints are under /receipts, it has the information you're probably looking for.";
 		return ResponseEntity.ok(Map.of("message", message));
 	}
 

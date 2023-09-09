@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Service
@@ -20,11 +20,12 @@ public class ReceiptWrite {
 		}
 
 		public static com.example.receiptprocessor.data.entities.Receipt hydrate(JsonNode receipt) {
-			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+			var date = receipt.get("purchaseDate").asText();
+			var time = receipt.get("purchaseTime").asText();
 			return new com.example.receiptprocessor.data.entities.Receipt(
 							receipt.get("retailer").asText(),
-							LocalDate.parse(receipt.get("purchaseDate").asText(), dateFormatter),
-							receipt.get("purchaseTime").asText(),
+							LocalDateTime.parse(date + time, dateFormatter),
 							new BigDecimal(receipt.get("total").asText()));
 		}
 

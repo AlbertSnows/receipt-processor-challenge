@@ -17,7 +17,7 @@ import java.util.Set;
 import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
 /**
- * This class encompasses, currently all recognized states we could encounter when
+ * This class encompasses, currently, all recognized states we could encounter when
  * specifically working with json
  */
 public class Json {
@@ -30,7 +30,7 @@ public class Json {
 						"details", validationResultOrFailure.get().toString());
 		return Shorthand.makeLazyStatePair(
 						() -> validationResultOrFailure.isSuccess() && !validationResultOrFailure.get().isEmpty(),
-						() -> new SimpleHTTPResponse(HttpStatus.BAD_GATEWAY, message));
+						() -> new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, message));
 	}
 
 	public static Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>> noSchemaFile(Try<Set<ValidationMessage>> validationResultOrFailure) {
