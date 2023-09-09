@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.UUID;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -18,10 +17,10 @@ public class Receipt {
 	private UUID id;
 	private final String retailer;
 	private final LocalDate purchaseDate;
-	private final LocalTime purchaseTime;
+	private final String purchaseTime;
 	private final BigDecimal total;
 
-	public Receipt(String retailer, LocalDate purchaseDate, LocalTime purchaseTime, BigDecimal total) {
+	public Receipt(String retailer, LocalDate purchaseDate, String purchaseTime, BigDecimal total) {
 		this.retailer = retailer;
 		this.purchaseDate = purchaseDate;
 		this.purchaseTime = purchaseTime;
