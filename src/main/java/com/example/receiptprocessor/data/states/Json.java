@@ -16,6 +16,10 @@ import java.util.Set;
 
 import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
+/**
+ * This class encompasses, currently all recognized states we could encounter when
+ * specifically working with json
+ */
 public class Json {
 	private Json() {
 		throw new IllegalStateException("Utility class");

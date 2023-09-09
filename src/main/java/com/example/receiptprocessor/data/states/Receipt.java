@@ -13,6 +13,10 @@ import java.util.Set;
 
 import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
+/**
+ * This class encompasses, currently all recognized states we could encounter when
+ * specifically working with our receipts data
+ */
 public class Receipt {
 	private Receipt() {
 		throw new IllegalStateException("Utility class");
