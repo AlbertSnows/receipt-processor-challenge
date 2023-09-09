@@ -51,7 +51,7 @@ public class ReceiptController {
 		var maybeJsonTree = Try.of(() -> objectMapper.readTree(json));
 		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, maybeJsonTree);
 		var validationOptions = processReceiptStates(validationResultOrFailure);
-		var result = Collections.getFirstTrue(validationOptions);
+		var result = Collections.getFirstTrue(validationOptions).get();
 		if(result.statusCode() == HttpStatus.CREATED) {
 			var x = "foo";
 //			receiptService.recordReceipt();
