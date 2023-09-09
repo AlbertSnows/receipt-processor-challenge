@@ -9,13 +9,13 @@ public class Collections {
 	private Collections() {
 		throw new IllegalStateException("Utility class");
 	}
-	public static <V> V getFirstTrue(List<Pair<Lazy<Boolean>, Lazy<V>>> stateMap, Lazy<V> failCase) {
+	public static <V> V getFirstTrue(List<Pair<Lazy<Boolean>, Lazy<V>>> stateMap) {
 		for (Pair<Lazy<Boolean>, Lazy<V>> statePair : stateMap) {
 			var value = statePair.getFirst().get();
 			if (Boolean.TRUE.equals(value)) {
 				return statePair.getSecond().get();
 			}
 		}
-		return failCase.get();
+		throw new IllegalArgumentException("You must provide a default case as the last argument");
 	}
 }

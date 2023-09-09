@@ -23,20 +23,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
-
 @RestController
 @RequestMapping("/receipts")
 public class ReceiptController {
 	private static final Logger logger = LoggerFactory.getLogger(ReceiptController.class);
-
-	@Autowired
-	private final Validation validation;
 	@Autowired
 	private final ObjectMapper objectMapper;
 
-	public ReceiptController(Validation validation, ObjectMapper objectMapper) {
-		this.validation = validation;
+	public ReceiptController(ObjectMapper objectMapper) {
 		this.objectMapper = objectMapper;
 	}
 
@@ -55,14 +49,9 @@ public class ReceiptController {
 		// Specify the path to your JSON file
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
 		var maybeJsonTree = Try.of(() -> objectMapper.readTree(json));
-		var validationResultOrFailure = validation.validateJsonSchema(jsonFile, maybeJsonTree);
+		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, maybeJsonTree);
 		var validationStateMap = processReceiptStates(validationResultOrFailure);
-		var exceptionType = validationResultOrFailure.getCause().getClass();
-		var failCase = Lazy.of(() -> new SimpleHTTPResponse(
-						HttpStatus.INTERNAL_SERVER_ERROR,
-						Map.of(MESSAGE, "Unrecognized problem trying to validate json.",
-										"error", exceptionType.descriptorString())));
-		SimpleHTTPResponse result = Collections.getFirstTrue(validationStateMap, failCase);
+		SimpleHTTPResponse result = Collections.getFirstTrue(validationStateMap);
 		if(result.statusCode() == HttpStatus.CREATED) {
 			var x = "foo";
 //			receiptService.recordReceipt();

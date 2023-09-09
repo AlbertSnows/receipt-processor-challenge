@@ -11,7 +11,11 @@ import java.nio.file.Path;
 import java.util.Set;
 
 public class Validation {
-	public Try<Set<ValidationMessage>> validateJsonSchema(Path jsonFile, Try<JsonNode> maybeJsonTree) {
+	private Validation() {
+		throw new IllegalStateException("Utility class");
+	}
+
+	public static Try<Set<ValidationMessage>> validateJsonSchema(Path jsonFile, Try<JsonNode> maybeJsonTree) {
 		// Read JSON from the file and map it to a Java object
 		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
 		var maybeSchema = Try.of(() -> {
