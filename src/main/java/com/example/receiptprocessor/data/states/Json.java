@@ -25,7 +25,7 @@ public class Json {
 						MESSAGE, "Invalid json, refer to details for more info.",
 						"details", validationResultOrFailure.get().toString());
 		return Shorthand.makeLazyStatePair(
-						() -> validationResultOrFailure.isSuccess() && !validationResultOrFailure.isEmpty(),
+						() -> validationResultOrFailure.isSuccess() && !validationResultOrFailure.get().isEmpty(),
 						() -> new SimpleHTTPResponse(HttpStatus.BAD_GATEWAY, message));
 	}
 
@@ -38,21 +38,25 @@ public class Json {
 	}
 
 	public static Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>> malformed(Try<Set<ValidationMessage>> validationResultOrFailure) {
-		var exceptionType = validationResultOrFailure.getCause().getClass();
 		return Shorthand.makeLazyStatePair(
-						() -> Set.of(JsonProcessingException.class, JsonMappingException.class).contains(exceptionType),
+						() -> {
+							var exceptionType = validationResultOrFailure.getCause().getClass();
+							return Set.of(JsonProcessingException.class, JsonMappingException.class).contains(exceptionType);
+						},
 						() -> new SimpleHTTPResponse(
 										HttpStatus.BAD_REQUEST,
 										Map.of(MESSAGE, "Problem building tree, invalid json")));
 	}
 
 	public static Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>> unknownProblem(Try<Set<ValidationMessage>> validationResultOrFailure) {
-		var exceptionType = validationResultOrFailure.getCause().getClass();
 		return Shorthand.makeLazyStatePair(
 						() -> true,
-						() -> new SimpleHTTPResponse(
-										HttpStatus.INTERNAL_SERVER_ERROR,
-										Map.of(MESSAGE, "Unrecognized problem trying to validate json.",
-														"error", exceptionType.descriptorString())));
+						() -> {
+							var exceptionType = validationResultOrFailure.getCause().getClass();
+							return new SimpleHTTPResponse(
+											HttpStatus.INTERNAL_SERVER_ERROR,
+											Map.of(MESSAGE, "Unrecognized problem trying to validate json.",
+															"error", exceptionType.descriptorString()));
+						});
 	}
 }

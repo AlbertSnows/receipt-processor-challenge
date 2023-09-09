@@ -19,7 +19,7 @@ public class Receipt {
 	}
 	public static Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>> created(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
-						() -> validationResultOrFailure.isSuccess() && validationResultOrFailure.isEmpty(),
+						() -> validationResultOrFailure.isSuccess() && validationResultOrFailure.get().isEmpty(),
 						() -> new SimpleHTTPResponse(HttpStatus.CREATED, Map.of(MESSAGE, "created")));
 	}
 }
