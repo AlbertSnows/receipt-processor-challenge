@@ -59,6 +59,16 @@ public class ReceiptController {
 		return ResponseEntity.status(result.statusCode()).body(result.body());
 	}
 
+	/**
+	 * A list of all recognized states that could happen when trying
+	 * to process a receipt
+	 * @param validationResultOrFailure A Try (i.e. Option) type that represents either
+	 *                                  A) the result of trying to validate the incoming json
+	 *                                  B) one of the many possible failure cases that could happen
+	 *                                     when trying to parse a json request
+	 * @return A list of endpoint states that is meant to encompass all expected states of
+	 * in this case, the processReceipt request
+	 */
 	@org.jetbrains.annotations.Unmodifiable
 	@org.jetbrains.annotations.Contract("_ -> new")
 	private List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>>
