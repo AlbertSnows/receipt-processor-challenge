@@ -2,8 +2,13 @@ package com.example.receiptprocessor.services.receipt;
 
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class ReceiptWrite {
@@ -14,12 +19,16 @@ public class ReceiptWrite {
 			this.receiptRepository = receiptRepository;
 		}
 
-		public void recordReceipt(Receipt receiptEntity) {
-
+		public static com.example.receiptprocessor.data.entities.Receipt hydrate(JsonNode receipt) {
+			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+			return new com.example.receiptprocessor.data.entities.Receipt(
+							receipt.get("retailer").asText(),
+							LocalDate.parse(receipt.get("purchaseDate").asText(), dateFormatter),
+							receipt.get("purchaseTime").asText(),
+							new BigDecimal(receipt.get("total").asText()));
 		}
 
-		public void saveReceipt(com.example.receiptprocessor.data.entities.Receipt receipt) {
-			// Implement logic to save the receipt data in the database
-			receiptRepository.save(receipt);
+		public Receipt recordReceipt(Receipt receiptEntity) {
+			return receiptRepository.save(receiptEntity);
 		}
 }

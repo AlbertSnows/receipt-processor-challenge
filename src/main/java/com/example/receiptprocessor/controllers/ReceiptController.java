@@ -1,6 +1,7 @@
 package com.example.receiptprocessor.controllers;
 
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
+import com.example.receiptprocessor.data.states.Database;
 import com.example.receiptprocessor.data.states.Json;
 import com.example.receiptprocessor.data.states.Receipt;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
@@ -9,6 +10,7 @@ import com.example.receiptprocessor.utility.Validation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.networknt.schema.ValidationMessage;
+import io.vavr.Function0;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
 import org.slf4j.Logger;
@@ -19,10 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigDecimal;
 import java.nio.file.Paths;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -42,31 +41,18 @@ public class ReceiptController {
 
 	@PostMapping("/process")
 	public ResponseEntity<Map<String, String>> recordReceipt(@RequestBody JsonNode receipt) {
-		var json = "{" +
-						"\"retailer\": \"Target\"," +
-						"\"purchaseDate\": \"2022-01-02\"," +
-						"\"purchaseTime\": \"13:13\"," +
-						"\"total\": \"1.25\"," +
-						"\"items\": [" +
-						"{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}" +
-						"]" + "}";
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
-		var maybeJsonTree = Try.of(() -> objectMapper.readTree(json));
-		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, maybeJsonTree);
-		var validationOptions = processReceiptStates(validationResultOrFailure);
-		var result = Collections.getFirstTrue(validationOptions).get();
-		if(result.statusCode() == HttpStatus.CREATED) { // todo: not created yet?
-			var jsonTree = maybeJsonTree.get();
-			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-			var receiptEntity = new com.example.receiptprocessor.data.entities.Receipt(
-							jsonTree.get("retailer").asText(),
-							LocalDate.parse(jsonTree.get("purchaseDate").asText(), dateFormatter),
-							jsonTree.get("purchaseTime").asText(),
-							new BigDecimal(jsonTree.get("total").asText())
-			);
-			receiptWrite.recordReceipt(receiptEntity);
-		}
-		return ResponseEntity.status(result.statusCode()).body(result.body());
+		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, receipt);
+		var validationOptions = processReceiptStatesOn(validationResultOrFailure);
+		var validationResult = Collections.firstTrueStateOf(validationOptions).get();
+		var validJson = validationResult.statusCode() == HttpStatus.CREATED;
+		var receiptEntity = validJson? ReceiptWrite.hydrate(receipt) : null;
+		var recordReceipt = Function0.of(() -> receiptWrite.recordReceipt(receiptEntity));
+		var success = validJson && recordReceipt.get() != null;
+		var responseResult = Collections.firstTrueEagerStateOf(List.of(
+						Pair.of(success || !validJson, validationResult),
+						Pair.of(true, Database.couldNotWrite())));
+		return ResponseEntity.status(responseResult.statusCode()).body(responseResult.body());
 	}
 
 	/**
@@ -82,7 +68,7 @@ public class ReceiptController {
 	@org.jetbrains.annotations.Unmodifiable
 	@org.jetbrains.annotations.Contract("_ -> new")
 	private List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>>
-	processReceiptStates(Try<Set<ValidationMessage>> validationResultOrFailure) {
+	processReceiptStatesOn(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return List.of(
 						Receipt.created(validationResultOrFailure),
 						Json.invalid(validationResultOrFailure),

@@ -15,7 +15,7 @@ public class Validation {
 		throw new IllegalStateException("Utility class");
 	}
 
-	public static Try<Set<ValidationMessage>> validateJsonSchema(Path jsonFile, Try<JsonNode> maybeJsonTree) {
+	public static Try<Set<ValidationMessage>> validateJsonSchema(Path jsonFile, JsonNode jsonTree) {
 		// Read JSON from the file and map it to a Java object
 		JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
 		var maybeSchema = Try.of(() -> {
@@ -23,8 +23,7 @@ public class Validation {
 			return factory.getSchema(schemaString);
 		});
 		return maybeSchema.flatMap(schema ->
-						maybeJsonTree.flatMap(jsonTree ->
-										Try.success(schema.validate(jsonTree))));
+						Try.success(schema.validate(jsonTree)));
 	}
 
 }
