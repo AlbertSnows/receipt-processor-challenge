@@ -50,8 +50,8 @@ public class ReceiptController {
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
 		var maybeJsonTree = Try.of(() -> objectMapper.readTree(json));
 		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, maybeJsonTree);
-		var validationStateMap = processReceiptStates(validationResultOrFailure);
-		SimpleHTTPResponse result = Collections.getFirstTrue(validationStateMap);
+		var validationOptions = processReceiptStates(validationResultOrFailure);
+		var result = Collections.getFirstTrue(validationOptions);
 		if(result.statusCode() == HttpStatus.CREATED) {
 			var x = "foo";
 //			receiptService.recordReceipt();
@@ -59,12 +59,16 @@ public class ReceiptController {
 		return ResponseEntity.status(result.statusCode()).body(result.body());
 	}
 
-	private List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>> processReceiptStates(Try<Set<ValidationMessage>> validationResultOrFailure) {
+	@org.jetbrains.annotations.Unmodifiable
+	@org.jetbrains.annotations.Contract("_ -> new")
+	private List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>>
+	processReceiptStates(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return List.of(
 						Receipt.created(validationResultOrFailure),
 						Json.invalid(validationResultOrFailure),
 						Json.noSchemaFile(validationResultOrFailure),
-						Json.malformed(validationResultOrFailure));
+						Json.malformed(validationResultOrFailure),
+						Json.unknownProblem(validationResultOrFailure));
 	}
 
 	@GetMapping("/{id}/points")
