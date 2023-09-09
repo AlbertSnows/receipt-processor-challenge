@@ -1,32 +1,47 @@
 package com.example.receiptprocessor.controllers;
 
+import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
+import com.example.receiptprocessor.data.states.Json;
+import com.example.receiptprocessor.data.states.Receipt;
+import com.example.receiptprocessor.utility.Collections;
+import com.example.receiptprocessor.utility.Validation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.networknt.schema.JsonSchemaFactory;
-import com.networknt.schema.SpecVersion;
+import com.networknt.schema.ValidationMessage;
+import io.vavr.Lazy;
+import io.vavr.control.Try;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
 @RestController
 @RequestMapping("/receipts")
 public class ReceiptController {
 	private static final Logger logger = LoggerFactory.getLogger(ReceiptController.class);
+
+	@Autowired
+	private final Validation validation;
 	@Autowired
 	private final ObjectMapper objectMapper;
 
-	public ReceiptController(ObjectMapper objectMapper) {
+	public ReceiptController(Validation validation, ObjectMapper objectMapper) {
+		this.validation = validation;
 		this.objectMapper = objectMapper;
 	}
 
 	@PostMapping("/process")
-	public ResponseEntity<String> recordReceipt(@RequestBody JsonNode receipt) {
+	public ResponseEntity<Map<String, String>> recordReceipt(@RequestBody JsonNode receipt) {
 
 		var json = "{" +
 						"\"retailer\": \"Target\"," +
@@ -36,38 +51,31 @@ public class ReceiptController {
 						"\"items\": [" +
 						"{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}" +
 						"]" + "}";
-//		var x = Map.of(
-//						"retailer", "string",
-//						"purchaseDate", "date",
-//						"purchaseTime", "time",
-//						"total", "currency",
-//						"items", "array");
+
 		// Specify the path to your JSON file
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
-		try {
-			// Read JSON from the file and map it to a Java object
-			var schemaString = Files.readString(jsonFile);
-			JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
-			var schema = factory.getSchema(schemaString);
-//			var schema = JsonSchemaFactory.builder().build().getSchema(schemaString);
-			var jsonTree = objectMapper.readTree(json);
-			var result = schema.validate(jsonTree);
-			logger.info(result.toString());
-		} catch (Exception e) {
-			logger.info(e.getMessage());
+		var maybeJsonTree = Try.of(() -> objectMapper.readTree(json));
+		var validationResultOrFailure = validation.validateJsonSchema(jsonFile, maybeJsonTree);
+		var validationStateMap = processReceiptStates(validationResultOrFailure);
+		var exceptionType = validationResultOrFailure.getCause().getClass();
+		var failCase = Lazy.of(() -> new SimpleHTTPResponse(
+						HttpStatus.INTERNAL_SERVER_ERROR,
+						Map.of(MESSAGE, "Unrecognized problem trying to validate json.",
+										"error", exceptionType.descriptorString())));
+		SimpleHTTPResponse result = Collections.getFirstTrue(validationStateMap, failCase);
+		if(result.statusCode() == HttpStatus.CREATED) {
+			var x = "foo";
+//			receiptService.recordReceipt();
 		}
+		return ResponseEntity.status(result.statusCode()).body(result.body());
+	}
 
-//		try {
-//			// Access and work with the JSON data using JsonNode
-//			Receipt person = objectMapper.readValue(json, Receipt.class);
-//			var result = objectMapper.readTree(json);
-//			var thing = "";
-//			//			return ResponseEntity.ok("Name: " + name + ", Age: " + age);
-//		} catch (Exception e) {
-//			return ResponseEntity.badRequest().body("Invalid JSON format");
-//		}
-
-		return ResponseEntity.status(HttpStatus.CREATED).build();
+	private List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>> processReceiptStates(Try<Set<ValidationMessage>> validationResultOrFailure) {
+		return List.of(
+						Receipt.created(validationResultOrFailure),
+						Json.invalid(validationResultOrFailure),
+						Json.noSchemaFile(validationResultOrFailure),
+						Json.malformed(validationResultOrFailure));
 	}
 
 	@GetMapping("/{id}/points")
