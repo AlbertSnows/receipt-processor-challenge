@@ -2,6 +2,7 @@ package com.example.receiptprocessor.controllers;
 
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.data.states.Database;
+import com.example.receiptprocessor.data.states.Json;
 import com.example.receiptprocessor.data.states.Receipt;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
 import com.example.receiptprocessor.utility.Collections;
@@ -30,20 +31,20 @@ public class ReceiptController {
 
 	public SimpleHTTPResponse validateReceipt(@RequestBody JsonNode receipt) {
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
-		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile).apply(receipt);
-		var validationOptions = Receipt.processReceiptStatesOn(validationResultOrFailure);
-		var validationResult = Collections.firstTrueStateOf(validationOptions).get();
-		var validJson = validationResult.statusCode() == HttpStatus.CREATED;
+		var validationOutcome = Validation.validateJsonSchemaFrom(jsonFile).apply(receipt).get();
+		var validationOutcomeState = validationOutcome.getFirst();
+		var validJson = validationOutcomeState.equals(Json.MATCHED_SCHEMA);
 		var receiptEntity = validJson? ReceiptWrite.hydrate(receipt) : null;
 		var recordReceipt = Function0.of(() -> receiptWrite.recordReceipt(receiptEntity));
 		var success = validJson && recordReceipt.get() != null;
 		return Collections.firstTrueEagerStateOf(List.of(
-						Pair.of(success || !validJson, validationResult),
-						Pair.of(true, Database.couldNotWrite())));
+						Pair.of(success, new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("message", "created!"))),
+						Pair.of(validJson, Database.couldNotWrite()),
+						Pair.of(true, Receipt.mapJsonResultsToReceiptResponse(validationOutcome))));
 	}
 
 	public void validateItems(Path file, JsonNode items) {
-		var validateItem = Validation.validateJsonSchema(file);
+		var validateItem = Validation.validateJsonSchemaFrom(file);
 		for (JsonNode item : items) {
 			var validationResult = validateItem.apply(item);
 		}
@@ -53,25 +54,25 @@ public class ReceiptController {
 	public SimpleHTTPResponse getItemValidationResult(@RequestBody JsonNode receipt) {
 		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/items.json");
 		var items = receipt.get("items");
-		var validationResultsForItems = validateItems(jsonFile, items);
+//		var validationResultsForItems = validateItems(jsonFile, items);
 //		var validationResultOrFailure = Validation.validateJsonSchema(jsonFile, receipt);
-		var validationOptions = Receipt.processReceiptStatesOn(validationResultOrFailure);
-		var validationResult = Collections.firstTrueStateOf(validationOptions).get();
-		var validJson = validationResult.statusCode() == HttpStatus.CREATED;
-		var receiptEntity = validJson? ReceiptWrite.hydrate(receipt) : null;
-		var recordReceipt = Function0.of(() -> receiptWrite.recordReceipt(receiptEntity));
-		var success = validJson && recordReceipt.get() != null;
-		return Collections.firstTrueEagerStateOf(List.of(
-						Pair.of(success || !validJson, validationResult),
-						Pair.of(true, Database.couldNotWrite())));
+//		var validationOptions = Receipt.mapJsonResultsToReceiptResponse(validationResultOrFailure);
+//		var validationResult = Collections.firstTrueStateOf(validationOptions).get();
+//		var validJson = validationResult.statusCode() == HttpStatus.CREATED;
+//		var receiptEntity = validJson? ReceiptWrite.hydrate(receipt) : null;
+//		var recordReceipt = Function0.of(() -> receiptWrite.recordReceipt(receiptEntity));
+//		var success = validJson && recordReceipt.get() != null;
+//		return Collections.firstTrueEagerStateOf(List.of(
+//						Pair.of(success || !validJson, validationResult),
+//						Pair.of(true, Database.couldNotWrite())));
 	}
 
 	@PostMapping("/process")
 	public ResponseEntity<Map<String, String>> recordReceipt(@RequestBody JsonNode receipt) {
-		var receiptResponse = validateReceipt(receipt); // todo: get query to make, bundle w/ items
-		var itemResponses = getItemValidationResult(receipt); // todo: get query to make, bundle w/ receipt
-		// todo: try saving receipt and items, revert if either fail
-		return ResponseEntity.status(responseResult.statusCode()).body(responseResult.body());
+//		var receiptResponse = validateReceipt(receipt); // todo: get query to make, bundle w/ items
+//		var itemResponses = getItemValidationResult(receipt); // todo: get query to make, bundle w/ receipt
+//		// todo: try saving receipt and items, revert if either fail
+//		return ResponseEntity.status(responseResult.statusCode()).body(responseResult.body());
 	}
 
 	@GetMapping("/{id}/points")

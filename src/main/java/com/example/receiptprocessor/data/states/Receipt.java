@@ -5,10 +5,10 @@ import com.example.receiptprocessor.utility.Shorthand;
 import com.networknt.schema.ValidationMessage;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -28,26 +28,20 @@ public class Receipt {
 						() -> new SimpleHTTPResponse(HttpStatus.CREATED, Map.of(MESSAGE, "created")));
 	}
 
-	/**
-	 * A list of all recognized states that could happen when trying
-	 * to process a receipt
-	 * @param validationResultOrFailure A Try (i.e. Option) type that represents either
-	 *                                  A) the result of trying to validate the incoming json
-	 *                                  B) one of the many possible failure cases that could happen
-	 *                                     when trying to parse a json request
-	 * @return A list of endpoint states
-	 * It's meant to encompass all expected states of,
-	 *  in this case, the processReceipt request
-	 */
-	@org.jetbrains.annotations.Unmodifiable
-	@org.jetbrains.annotations.Contract("_ -> new")
-	public static List<Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>>
-	processReceiptStatesOn(Try<Set<ValidationMessage>> validationResultOrFailure) {
-		return List.of(
-						Receipt.created(validationResultOrFailure),
-						Json.invalid(validationResultOrFailure),
-						Json.noSchemaFile(validationResultOrFailure),
-						Json.malformed(validationResultOrFailure),
-						Json.unknownProblem(validationResultOrFailure));
+	public static SimpleHTTPResponse
+	mapJsonResultsToReceiptResponse(@NotNull Pair<String, String> validationOutcome) {
+		return Map.of(
+						Json.INVALID_SCHEMA, new SimpleHTTPResponse(
+										HttpStatus.BAD_REQUEST,
+										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
+						Json.MALFORMED_JSON, new SimpleHTTPResponse(
+										HttpStatus.BAD_REQUEST,
+										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
+						Json.NO_FILE, new SimpleHTTPResponse(
+										HttpStatus.INTERNAL_SERVER_ERROR,
+										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
+						Json.UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(
+										HttpStatus.INTERNAL_SERVER_ERROR,
+										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond()))).get(validationOutcome.getFirst());
 	}
 }
