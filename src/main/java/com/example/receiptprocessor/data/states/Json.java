@@ -10,10 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Set;
-
-import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
 /**
  * This class encompasses, currently, all recognized states we could encounter when
@@ -40,12 +37,10 @@ public class Json {
 
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	invalidSchema(@NotNull Try<Set<ValidationMessage>> validationResultOrFailure) {
-		var message = Map.of(
-						MESSAGE, "Invalid json, refer to details for more info.",
-						"details", validationResultOrFailure.get().toString());
 		return Shorthand.makeLazyStatePair(
 						() -> validationResultOrFailure.isSuccess() && !validationResultOrFailure.get().isEmpty(),
-						() -> Pair.of(INVALID_SCHEMA, "Json doesn't match schema. Details: " + message));
+						() -> Pair.of(INVALID_SCHEMA,
+										"Json doesn't match schema. Details: " + validationResultOrFailure.get().toString()));
 	}
 
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>

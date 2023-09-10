@@ -30,18 +30,13 @@ public class Receipt {
 
 	public static SimpleHTTPResponse
 	mapJsonResultsToReceiptResponse(@NotNull Pair<String, String> validationOutcome) {
+		var details = Map.of(validationOutcome.getFirst(), validationOutcome.getSecond());
 		return Map.of(
-						Json.INVALID_SCHEMA, new SimpleHTTPResponse(
-										HttpStatus.BAD_REQUEST,
-										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
-						Json.MALFORMED_JSON, new SimpleHTTPResponse(
-										HttpStatus.BAD_REQUEST,
-										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
-						Json.NO_FILE, new SimpleHTTPResponse(
-										HttpStatus.INTERNAL_SERVER_ERROR,
-										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond())),
-						Json.UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(
-										HttpStatus.INTERNAL_SERVER_ERROR,
-										Map.of(validationOutcome.getFirst(), validationOutcome.getSecond()))).get(validationOutcome.getFirst());
+						Json.INVALID_SCHEMA, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
+						Json.MALFORMED_JSON, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
+						Json.NO_FILE, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
+						Json.UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
+						Json.MATCHED_SCHEMA, new SimpleHTTPResponse(HttpStatus.CREATED, details))
+						.get(validationOutcome.getFirst());
 	}
 }

@@ -1,4 +1,4 @@
 package com.example.receiptprocessor.services.item;
 
-public class Write {
+public class ItemRead {
 }

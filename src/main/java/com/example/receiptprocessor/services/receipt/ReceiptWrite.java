@@ -3,6 +3,7 @@ package com.example.receiptprocessor.services.receipt;
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.fasterxml.jackson.databind.JsonNode;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +20,13 @@ public class ReceiptWrite {
 			this.receiptRepository = receiptRepository;
 		}
 
-		public static com.example.receiptprocessor.data.entities.Receipt hydrate(JsonNode receipt) {
+		public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
 			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 			var date = receipt.get("purchaseDate").asText();
 			var time = receipt.get("purchaseTime").asText();
 			return new com.example.receiptprocessor.data.entities.Receipt(
 							receipt.get("retailer").asText(),
-							LocalDateTime.parse(date + time, dateFormatter),
+							LocalDateTime.parse(date + " " + time, dateFormatter),
 							new BigDecimal(receipt.get("total").asText()));
 		}
 

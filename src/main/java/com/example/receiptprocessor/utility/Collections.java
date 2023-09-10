@@ -1,14 +1,24 @@
 package com.example.receiptprocessor.utility;
 
 import io.vavr.Lazy;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 
 import java.util.List;
+import java.util.function.Function;
 
 public class Collections {
 	private Collections() {
 		throw new IllegalStateException("Utility class");
+	}
+
+	@Contract(pure = true)
+	public static <V> @NotNull Function<V, List<V>> add(List<V> list) {
+		return item -> {
+			list.add(item);
+			return list;
+		};
 	}
 
 	/** This is an eager implementation of firstTrueStateOf.
@@ -26,7 +36,7 @@ public class Collections {
 	 * As such, P represents pairs of state => value relationships such that
 	 * @return is represented by R, the value you want when L is *true*
 	 */
-	public static <V> V firstTrueEagerStateOf(@NotNull List<Pair<Boolean, V>> stateMap) {
+	public static <V> @NotNull V firstTrueEagerStateOf(@NotNull List<Pair<Boolean, V>> stateMap) {
 		for (Pair<Boolean, V> statePair : stateMap) {
 			var value = statePair.getFirst();
 			if (Boolean.TRUE.equals(value)) {
@@ -48,7 +58,7 @@ public class Collections {
 	 * of other resources online
 	 * <a href="https://javadoc.io/doc/io.vavr/vavr/0.9.2/io/vavr/Lazy.html">Laziness</a>
 	 */
-	public static <V> Lazy<V> firstTrueStateOf(@NotNull List<Pair<Lazy<Boolean>, Lazy<V>>> stateMap) {
+	public static <V> @NotNull Lazy<V> firstTrueStateOf(@NotNull List<Pair<Lazy<Boolean>, Lazy<V>>> stateMap) {
 		for (Pair<Lazy<Boolean>, Lazy<V>> statePair : stateMap) {
 			var value = statePair.getFirst().get();
 			if (Boolean.TRUE.equals(value)) {
