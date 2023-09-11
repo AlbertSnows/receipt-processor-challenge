@@ -1,9 +1,11 @@
 package com.example.receiptprocessor.controllers;
 
+import com.example.receiptprocessor.data.entities.Points;
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.entities.ReceiptItems;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.data.repositories.ItemRepository;
+import com.example.receiptprocessor.data.repositories.PointsRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptItemsRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
@@ -61,6 +63,9 @@ public class ReceiptController {
 	private final ReceiptItemsRepository receiptItemRepo;
 	@Autowired
 	private final PointRead pointRead;
+	@Autowired
+	private final PointsRepository pointRepo;
+
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	public ReceiptController(ReceiptWrite receiptService,
 	                         ItemWrite itemWrite,
@@ -68,7 +73,9 @@ public class ReceiptController {
 	                         ReceiptRepository receiptRead,
 	                         ReceiptItemWrites receiptItemWrites,
 	                         ReceiptItemsRepository receiptItemRepo,
-	                         PointRead pointRead) {
+	                         PointRead pointRead,
+	                         PointsRepository pointRepo) {
+
 		this.receiptWrite = receiptService;
 		this.itemWrite = itemWrite;
 		this.itemRead = itemRead;
@@ -76,6 +83,7 @@ public class ReceiptController {
 		this.receiptItemWrites = receiptItemWrites;
 		this.receiptItemRepo = receiptItemRepo;
 		this.pointRead = pointRead;
+		this.pointRepo = pointRepo;
 	}
 
 	Lazy<Receipt> getReceiptQuery(JsonNode receipt) {
@@ -183,10 +191,13 @@ public class ReceiptController {
 						.map(com.example.receiptprocessor.data.entities.Item::getId).toList().toString();
 		var allReadItems = receiptItemRepo.findAll().stream()
 						.map(ReceiptItems::getId).toList().toString();
+		var allPoints = pointRepo.findAll().stream()
+						.map(Points::getId).toList().toString();
 		return ResponseEntity.ok(List.of(
 						"Receipts: ", allReceipts, " | ",
 						"Items: ", allItems, " | ",
-						"Receipt Items:", allReadItems));
+						"Receipt Items:", allReadItems, " | ",
+						"Points: ", allPoints));
 	}
 
 	@GetMapping("/{providedReceiptID}/points")
