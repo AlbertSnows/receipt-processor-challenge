@@ -1,8 +1,8 @@
 package com.example.receiptprocessor.services.receipt;
 
 import com.example.receiptprocessor.data.entities.Receipt;
-import com.example.receiptprocessor.data.records.ItemDescLengthAndPrice;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
+import com.example.receiptprocessor.data.states.Points;
 import com.example.receiptprocessor.services.item.ItemRead;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 public class ReceiptWrite {
@@ -43,32 +43,20 @@ public class ReceiptWrite {
 	public Integer calculatePoints(Receipt receipt) {
 			//todo: we don't currently check if total of receipt matches item
 		var receiptItems = itemRead.findAll(receipt);
-		var retailerPointNames = receipt.getRetailer().length();
-		var retailerNameCountPointTotal = receipt.getTotal();
-		var totalIsRound = retailerNameCountPointTotal.scale() == 0;
-		var quarterFractional = totalIsRound
-						|| retailerNameCountPointTotal.remainder(new BigDecimal("0.25")).equals(BigDecimal.ZERO);
-		var haveRelevantItems = receiptItems.size() >= 2;
-		//todo: pretrim descriptions
-		var relevantItemPrices = receiptItems.stream()
-						.map(item -> new ItemDescLengthAndPrice(item.getShortDescription().length(), item.getPrice()))
-						.filter(itemRecord -> itemRecord.length() % 3 == 0);
-		//todo: pass stream to success state (if not relevant)
-//						.map(itemRecord -> itemRecord.price().multiply(BigDecimal.valueOf(0.2)))
-//						.map(BigDecimal::scale)
-//						.mapToInt(Integer::intValue)
-//						.sum();
+		var retailerPurchaseTotal = receipt.getTotal();
 		var purchaseDateTime = receipt.getPurchaseDateTime();
-		var purchaseMonthDay = purchaseDateTime.getDayOfMonth();
-		var oddDay = purchaseMonthDay % 2 == 1;
-		var purchaseTime = purchaseDateTime.toLocalTime();
-		var isBetweenTwoAndFour = purchaseTime.isAfter(LocalTime.of(14, 0))
-										&& purchaseTime.isBefore(LocalTime.of(16, 0));
-
-
-
-
-			//todo: ...
-			return 69;
+		var possiblePointStates = List.of(
+						Points.retailerNameCount(),
+						Points.roundTotal(),
+						Points.quarterFractional(),
+						Points.pointsPerTwoItems(),
+						Points.itemPricePointsFromItemDescription(),
+						Points.oddPurchaseDate(),
+						Points.timeBetweenTwoAndFour());
+		var relevantPointStates = possiblePointStates.stream()
+						.filter(state -> state.getFirst().get());
+		return relevantPointStates
+						.map(state -> state.getSecond().get()) // returns an int
+						.sum();
 	}
 }
