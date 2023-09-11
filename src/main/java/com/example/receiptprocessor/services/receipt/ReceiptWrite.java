@@ -1,7 +1,9 @@
 package com.example.receiptprocessor.services.receipt;
 
+import com.example.receiptprocessor.data.entities.Item;
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
+import com.example.receiptprocessor.services.item.ItemRead;
 import com.example.receiptprocessor.services.points.PointRead;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
@@ -11,17 +13,18 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Service
 public class ReceiptWrite {
 		@Autowired
 		private final ReceiptRepository receiptRepository;
 		@Autowired
-		private final PointRead pointRead;
+		private final ItemRead itemRead;
 
-		public ReceiptWrite(ReceiptRepository receiptRepository, PointRead pointRead) {
+		public ReceiptWrite(ReceiptRepository receiptRepository, ItemRead itemRead) {
 			this.receiptRepository = receiptRepository;
-			this.pointRead = pointRead;
+			this.itemRead = itemRead;
 		}
 
 		public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
@@ -39,6 +42,7 @@ public class ReceiptWrite {
 		}
 
 	public Integer calculatePoints(Receipt receipt) {
+		List<Item> receiptItems = itemRead.findAll(receipt);
 		// get points if already exists
 //		var alreadyCalculated = point != null;
 
