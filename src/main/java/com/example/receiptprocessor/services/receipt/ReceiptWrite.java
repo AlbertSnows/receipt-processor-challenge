@@ -4,6 +4,7 @@ import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Points;
 import com.example.receiptprocessor.services.item.ItemRead;
+import com.example.receiptprocessor.services.points.PointWrite;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Service
 public class ReceiptWrite {
@@ -20,11 +20,17 @@ public class ReceiptWrite {
 		private final ReceiptRepository receiptRepository;
 		@Autowired
 		private final ItemRead itemRead;
+		@Autowired
+		private final PointWrite pointWrite;
 
-		public ReceiptWrite(ReceiptRepository receiptRepository, ItemRead itemRead) {
-			this.receiptRepository = receiptRepository;
-			this.itemRead = itemRead;
-		}
+
+	public ReceiptWrite(ReceiptRepository receiptRepository,
+	                    ItemRead itemRead,
+	                    PointWrite pointWrite) {
+		this.receiptRepository = receiptRepository;
+		this.itemRead = itemRead;
+		this.pointWrite = pointWrite;
+	}
 
 		public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
 			var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
@@ -41,22 +47,17 @@ public class ReceiptWrite {
 		}
 
 	public Integer calculatePoints(Receipt receipt) {
-			//todo: we don't currently check if total of receipt matches item
 		var receiptItems = itemRead.findAll(receipt);
-		var retailerPurchaseTotal = receipt.getTotal();
-		var purchaseDateTime = receipt.getPurchaseDateTime();
-		var possiblePointStates = List.of(
-						Points.retailerNameCount(),
-						Points.roundTotal(),
-						Points.quarterFractional(),
-						Points.pointsPerTwoItems(),
-						Points.itemPricePointsFromItemDescription(),
-						Points.oddPurchaseDate(),
-						Points.timeBetweenTwoAndFour());
+		//todo: we don't currently check if total of receipt matches item
+		var possiblePointStates =
+						Points.possibleStatesForReceiptPoints(receipt, receiptItems);
 		var relevantPointStates = possiblePointStates.stream()
 						.filter(state -> state.getFirst().get());
-		return relevantPointStates
-						.map(state -> state.getSecond().get()) // returns an int
+		var totalPoints = relevantPointStates
+						.map(state -> state.getSecond().get())
+						.mapToInt(Integer::intValue)// returns an int
 						.sum();
+		pointWrite.save(pointWrite.hydrate(totalPoints, receipt));
+		return totalPoints;
 	}
 }

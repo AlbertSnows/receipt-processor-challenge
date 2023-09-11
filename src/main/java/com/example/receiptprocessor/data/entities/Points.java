@@ -13,18 +13,15 @@ public class Points {
 	private UUID id;
 	@Column(name = "points")
 	private Integer points;
-
 	@OneToOne
 	private Receipt receipt;
-
 	public Points() {
 
 	}
-
-	public Points(Integer points) {
+	public Points(Integer points, Receipt receipt) {
 		this.points = points;
+		this.receipt = receipt;
 	}
-
 	public UUID getId() {
 		return this.id;
 	}

@@ -7,6 +7,7 @@ import com.example.receiptprocessor.utility.Shorthand;
 import io.vavr.Function0;
 import io.vavr.Lazy;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 import org.springframework.data.util.Pair;
 
 import java.math.BigDecimal;
@@ -72,5 +73,20 @@ public class Points {
 						() -> purchaseTime.isAfter(LocalTime.of(14, 0))
 										&& purchaseTime.isBefore(LocalTime.of(16, 0)),
 						() -> 10);
+	}
+
+	public static @Unmodifiable List<Pair<Lazy<Boolean>, Lazy<Integer>>>
+	possibleStatesForReceiptPoints(@NotNull Receipt receipt, List<Item> receiptItems) {
+		var retailerPurchaseTotal = receipt.getTotal();
+		var purchaseDateTime = receipt.getPurchaseDateTime();
+		return List.of(
+						Points.retailerNameCount(receipt),
+						Points.roundTotal(retailerPurchaseTotal),
+						Points.quarterFractional(retailerPurchaseTotal),
+						Points.pointsPerTwoItems(receiptItems),
+						Points.itemPricePointsFromItemDescription(receiptItems),
+						Points.oddPurchaseDate(purchaseDateTime),
+						Points.timeBetweenTwoAndFour(purchaseDateTime));
+
 	}
 }

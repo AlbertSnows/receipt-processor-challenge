@@ -7,16 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class PointRead {
+public class PointWrite {
 	@Autowired
 	private final PointsRepository pointRepo;
 
-	public PointRead(PointsRepository pointRepo) {
+	public PointWrite(PointsRepository pointRepo) {
 		this.pointRepo = pointRepo;
 	}
-
-	public Points findByReceipt(Receipt receipt) {
-		return pointRepo.findByReceipt(receipt);
+	public Points hydrate(int totalPoints, Receipt receipt) {
+		return new Points(totalPoints, receipt);
 	}
 
+	public void save(Points points) {
+		pointRepo.save(points);
+	}
 }
