@@ -3,6 +3,7 @@ package com.example.receiptprocessor.controllers;
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.data.repositories.ItemRepository;
+import com.example.receiptprocessor.data.repositories.ReceiptItemsRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
 import com.example.receiptprocessor.services.item.ItemWrite;
@@ -30,6 +31,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.StreamSupport;
 
 import static com.example.receiptprocessor.data.Constants.MATCHED_SCHEMA;
@@ -51,17 +53,21 @@ public class ReceiptController {
 	private final ReceiptRepository receiptRead;
 	@Autowired
 	private final ReceiptItemWrites receiptItemWrites;
+	@Autowired
+	private final ReceiptItemsRepository receiptItemRepo;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	public ReceiptController(ReceiptWrite receiptService,
 	                         ItemWrite itemWrite,
 	                         ItemRepository itemRead,
 	                         ReceiptRepository receiptRead,
-	                         ReceiptItemWrites receiptItemWrites) {
+	                         ReceiptItemWrites receiptItemWrites,
+	                         ReceiptItemsRepository receiptItemRepo) {
 		this.receiptWrite = receiptService;
 		this.itemWrite = itemWrite;
 		this.itemRead = itemRead;
 		this.receiptRead = receiptRead;
 		this.receiptItemWrites = receiptItemWrites;
+		this.receiptItemRepo = receiptItemRepo;
 	}
 
 	Lazy<Receipt> getReceiptQuery(JsonNode receipt) {
@@ -149,7 +155,8 @@ public class ReceiptController {
 		List<Pair<String, String>> invalidData = Objects.uncheckedCast(invalidDataOutcome);
 		List<com.example.receiptprocessor.data.entities.Item> itemQueries = getItemQueries(receipt.get("items"));
 		Receipt receiptQueries = validReceipt? getReceiptQuery(receipt).get() : null;
-		receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptQueries);
+		var receiptItems =
+						receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptQueries).toList();
 		var responseInfo = invalidData.isEmpty()?
 						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("message", "receipt stored!")) :
 						errorState(invalidData);
@@ -161,17 +168,15 @@ public class ReceiptController {
 	}
 
 	@GetMapping("/all")
-	public ResponseEntity<List<Receipt>> listAllData() {
-		var allReceipts = receiptRead.findAll();
-//		List<Object> allItems = java.util.Collections.singletonList(itemRead.findAll());
-		return ResponseEntity.ok(allReceipts
-//						Collections.combine(List.of(allReceipts, allItems)).toList()
-						)
-						;
+	public ResponseEntity<List<String>> listAllData() {
+		var allReceipts = receiptRead.findAll().toString();
+		var allItems = itemRead.findAll().toString();
+		var allReadItems = receiptItemRepo.findAll().toString();
+		return ResponseEntity.ok(List.of(allReceipts, allItems, allReadItems));
 	}
 
 	@GetMapping("/{id}/points")
-	public ResponseEntity<Integer> getPoints(@PathVariable Long id) {
+	public ResponseEntity<Integer> getPoints(@PathVariable UUID id) {
 		// Implement retrieval logic here, e.g., fetch points for a receipt by ID
 		// Replace 'Integer' with the actual type of the data you're returning
 		Integer points = 100;
