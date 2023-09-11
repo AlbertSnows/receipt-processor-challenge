@@ -69,8 +69,4 @@ public class Receipt {
 						() -> new SimpleHTTPResponse(HttpStatus.NOT_FOUND,
 										Map.of("error", "No receipt associated with provided id.")));
 	}
-
-
-
-
 }
