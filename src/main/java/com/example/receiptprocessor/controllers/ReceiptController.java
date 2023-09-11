@@ -7,6 +7,7 @@ import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
 import com.example.receiptprocessor.services.item.ItemWrite;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
+import com.example.receiptprocessor.services.receipt_items.ReceiptItemWrites;
 import com.example.receiptprocessor.utility.Collections;
 import com.example.receiptprocessor.utility.Objects;
 import com.example.receiptprocessor.utility.Validation;
@@ -29,7 +30,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.example.receiptprocessor.data.Constants.MATCHED_SCHEMA;
@@ -49,29 +49,31 @@ public class ReceiptController {
 	private final ItemRepository itemRead;
 	@Autowired
 	private final ReceiptRepository receiptRead;
+	@Autowired
+	private final ReceiptItemWrites receiptItemWrites;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	public ReceiptController(ReceiptWrite receiptService,
 	                         ItemWrite itemWrite,
 	                         ItemRepository itemRead,
-	                         ReceiptRepository receiptRead) {
+	                         ReceiptRepository receiptRead,
+	                         ReceiptItemWrites receiptItemWrites) {
 		this.receiptWrite = receiptService;
 		this.itemWrite = itemWrite;
 		this.itemRead = itemRead;
 		this.receiptRead = receiptRead;
+		this.receiptItemWrites = receiptItemWrites;
 	}
 
-	Lazy<Void> getReceiptQuery(JsonNode receipt) {
+	Lazy<Receipt> getReceiptQuery(JsonNode receipt) {
 		var receiptEntity = ReceiptWrite.hydrate(receipt);
-		return Lazy.of(() -> { receiptWrite.recordReceipt(receiptEntity); return null; });
+		return Lazy.of(() -> receiptWrite.recordReceipt(receiptEntity));
 	}
 
-	  Stream<Lazy<Void>> getItemQueries(@NotNull JsonNode items) {
+	  List<com.example.receiptprocessor.data.entities.Item> getItemQueries(@NotNull JsonNode items) {
 		 return StreamSupport.stream(items.spliterator(), true)
 						.map(ItemWrite::hydrate)
-						.map(item -> Lazy.of(() -> {
-							itemWrite.save(item);
-							return null;
-						}));
+						.map(itemWrite::save)
+						 .toList();
 	}
 
 	public Pair<String, String> validateReceipt(@RequestBody JsonNode receipt) {
@@ -145,15 +147,9 @@ public class ReceiptController {
 						ITEM_VALID, List.of(receiptOutcomes),
 						NEITHER_VALID, List.of(receiptOutcomes, itemOutcomes)));
 		List<Pair<String, String>> invalidData = Objects.uncheckedCast(invalidDataOutcome);
-		Stream<Lazy<Void>> itemQueries = validItems?
-						getItemQueries(receipt.get("items")) :
-						Stream.of(Lazy.of(() -> null));
-		Stream<Lazy<Void>> receiptQueries = Stream.of(validReceipt? getReceiptQuery(receipt) : Lazy.of(() -> null));
-		var queriesToRunOutcome = validReceipt && validItems?
-						Stream.concat(itemQueries, receiptQueries) : Stream.of(Lazy.of(() -> null));
-		// todo: make connections
-		Stream<Lazy<Void>> queriesToRun = Objects.uncheckedCast(queriesToRunOutcome);
-//		queriesToRun.forEach(Lazy::get);
+		List<com.example.receiptprocessor.data.entities.Item> itemQueries = getItemQueries(receipt.get("items"));
+		Receipt receiptQueries = validReceipt? getReceiptQuery(receipt).get() : null;
+		receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptQueries);
 		var responseInfo = invalidData.isEmpty()?
 						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("message", "receipt stored!")) :
 						errorState(invalidData);

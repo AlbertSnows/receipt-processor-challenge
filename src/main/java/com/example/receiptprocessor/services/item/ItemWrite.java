@@ -26,7 +26,7 @@ public class ItemWrite {
 						new BigDecimal(item.get("price").asText()));
 	}
 
-	public void save(Item item) {
-		itemRepo.save(item);
+	public Item save(Item item) {
+		return itemRepo.save(item);
 	}
 }

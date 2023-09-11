@@ -19,6 +19,10 @@ public class Item {
 	@Column(name = "price")
 	private BigDecimal price;
 
+	@ManyToOne
+	@JoinColumn(name = "receipt_id")
+	private Receipt receipt;
+
 	public Item() {
 
 	}
@@ -26,5 +30,9 @@ public class Item {
 	public Item(String shortDescription, BigDecimal price) {
 		this.shortDescription = shortDescription;
 		this.price = price;
+	}
+
+	public UUID getId() {
+		return this.id;
 	}
 }

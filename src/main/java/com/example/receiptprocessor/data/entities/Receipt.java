@@ -28,4 +28,9 @@ public class Receipt {
 		this.purchaseDateTime = purchaseDateTime;
 		this.total = total;
 	}
+
+	public UUID getId() {
+		return this.id;
+	}
+
 }
