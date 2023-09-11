@@ -197,11 +197,12 @@ public class ReceiptController {
 		var maybeReceipt = validUUID? receiptRead.findById(receiptID) : java.util.Optional.<Receipt>empty();
 		var receipt = maybeReceipt.orElse(null);
 		var getPoints = Function0.of(() -> pointRead.findByReceipt(receipt)).memoized();
+		var calcPoints = Lazy.of(() -> receiptWrite.calculatePoints(receipt));
 		var outcome = Collections.firstTrueStateOf(List.of(
 						Json.invalidID(validUUID),
 						com.example.receiptprocessor.data.states.Receipt.idNotFound(receipt),
 						com.example.receiptprocessor.data.states.Receipt.getPoints(getPoints),
-						com.example.receiptprocessor.data.states.Receipt.calculatePoints(getPoints, receipt)))
+						com.example.receiptprocessor.data.states.Receipt.calculatePoints(getPoints, calcPoints)))
 						.get();
 		return ResponseEntity.status(outcome.statusCode()).body(outcome.body());
 	}

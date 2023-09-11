@@ -1,8 +1,10 @@
 package com.example.receiptprocessor.data.states;
 
+import com.example.receiptprocessor.data.entities.Points;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.utility.Shorthand;
 import com.networknt.schema.ValidationMessage;
+import io.vavr.Function0;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
 import jakarta.validation.constraints.NotNull;
@@ -20,6 +22,7 @@ import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.ME
  * specifically working with our receipts data
  */
 public class Receipt {
+
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	created(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
@@ -40,17 +43,29 @@ public class Receipt {
 	}
 
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
-	gotPoints(Boolean validUUID, com.example.receiptprocessor.data.entities.Receipt receipt, Lazy<Integer> getsertPoints) {
+	getPoints(@org.jetbrains.annotations.NotNull Function0<Points> getPoints) {
+		var points = getPoints.get();
 		return Shorthand.makeLazyStatePair(
-						() -> validUUID && receipt != null,
+						() -> points != null,
 						() -> new SimpleHTTPResponse(HttpStatus.OK,
-										Map.of("points", getsertPoints.get().toString())));
+										Map.of("points", points.getPoints().toString())));
 	}
 
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
-	idNotFound(Boolean validUUID) {
+	calculatePoints(Function0<Points> points, Lazy<Integer> calcPoints) {
+		//todo: reorginize state
+		//todo: move point calc to point write service
+		//todo: check that inner functions aren't eagerly evaluated
 		return Shorthand.makeLazyStatePair(
-						() -> validUUID,
+						() -> points.get() == null,
+						() -> new SimpleHTTPResponse(HttpStatus.OK,
+										Map.of("points", calcPoints.get().toString())));
+	}
+
+	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
+	idNotFound(com.example.receiptprocessor.data.entities.Receipt receipt) {
+		return Shorthand.makeLazyStatePair(
+						() -> receipt == null,
 						() -> new SimpleHTTPResponse(HttpStatus.NOT_FOUND,
 										Map.of("error", "No receipt associated with provided id.")));
 	}
