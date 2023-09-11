@@ -5,13 +5,14 @@ import com.example.receiptprocessor.utility.Shorthand;
 import com.networknt.schema.ValidationMessage;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
-import org.jetbrains.annotations.NotNull;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 
 import java.util.Map;
 import java.util.Set;
 
+import static com.example.receiptprocessor.data.Constants.*;
 import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
 /**
@@ -32,11 +33,11 @@ public class Receipt {
 	mapJsonResultsToReceiptResponse(@NotNull Pair<String, String> validationOutcome) {
 		var details = Map.of(validationOutcome.getFirst(), validationOutcome.getSecond());
 		return Map.of(
-						Json.INVALID_SCHEMA, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
-						Json.MALFORMED_JSON, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
-						Json.NO_FILE, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
-						Json.UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
-						Json.MATCHED_SCHEMA, new SimpleHTTPResponse(HttpStatus.CREATED, details))
+						INVALID_SCHEMA, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
+						MALFORMED_JSON, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
+						NO_FILE, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
+						UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
+						MATCHED_SCHEMA, new SimpleHTTPResponse(HttpStatus.CREATED, details))
 						.get(validationOutcome.getFirst());
 	}
 }

@@ -6,8 +6,9 @@
       "type": "string"
     },
     "price": {
-      "type": "string",
-      "format": "currency"
+      "type": "number",
+      "minimum": 0,
+      "multipleOf": 0.01
     }
   },
   "required": ["shortDescription", "price"]

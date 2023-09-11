@@ -7,10 +7,16 @@ import org.springframework.data.util.Pair;
 
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public class Collections {
 	private Collections() {
 		throw new IllegalStateException("Utility class");
+	}
+
+	public static <V> Stream<V> combine(@NotNull List<List<V>> collectionOfCollections) {
+		return collectionOfCollections.stream()
+						.flatMap(List::stream);
 	}
 
 	@Contract(pure = true)
