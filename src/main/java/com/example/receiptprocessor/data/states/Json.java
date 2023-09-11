@@ -1,5 +1,6 @@
 package com.example.receiptprocessor.data.states;
 
+import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.utility.Shorthand;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -8,8 +9,10 @@ import io.vavr.Lazy;
 import io.vavr.control.Try;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
+import org.springframework.http.HttpStatus;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Set;
 
 import static com.example.receiptprocessor.data.Constants.*;
@@ -21,6 +24,14 @@ import static com.example.receiptprocessor.data.Constants.*;
 public class Json {
 	private Json() {
 		throw new IllegalStateException("Utility class");
+	}
+
+	public static @NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
+	invalidID() {
+		return Shorthand.makeLazyStatePair(
+						() -> true,
+						() -> new SimpleHTTPResponse(HttpStatus.BAD_REQUEST,
+										Map.of("error", "Invalid ID")));
 	}
 
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>

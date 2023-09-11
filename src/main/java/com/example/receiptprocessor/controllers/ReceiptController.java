@@ -6,6 +6,7 @@ import com.example.receiptprocessor.data.repositories.ItemRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptItemsRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
+import com.example.receiptprocessor.data.states.Json;
 import com.example.receiptprocessor.services.item.ItemWrite;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
 import com.example.receiptprocessor.services.receipt_items.ReceiptItemWrites;
@@ -172,14 +173,23 @@ public class ReceiptController {
 		var allReceipts = receiptRead.findAll().toString();
 		var allItems = itemRead.findAll().toString();
 		var allReadItems = receiptItemRepo.findAll().toString();
-		return ResponseEntity.ok(List.of(allReceipts, allItems, allReadItems));
+		return ResponseEntity.ok(List.of(
+						"Receipts: ", allReceipts, " | ",
+						"Items: ", allItems, " | ",
+						"Receipt Items:", allReadItems));
 	}
 
-	@GetMapping("/{id}/points")
-	public ResponseEntity<Integer> getPoints(@PathVariable UUID id) {
-		// Implement retrieval logic here, e.g., fetch points for a receipt by ID
-		// Replace 'Integer' with the actual type of the data you're returning
-		Integer points = 100;
-		return ResponseEntity.ok(points);
+	@GetMapping("/{providedReceiptID}/points")
+	public ResponseEntity<Map<String, String>> getPoints(@PathVariable String providedReceiptID) {
+		var maybeUUID = Try.of(() -> UUID.fromString(providedReceiptID));
+		var validUUID = maybeUUID.isSuccess();
+		var receiptID = validUUID? maybeUUID.get() : null;
+		var maybeReceipt = validUUID? receiptRead.findById(receiptID) : java.util.Optional.<Receipt>empty();
+		var receipt = maybeReceipt.orElse(null);
+		var outcome = Collections.firstTrueStateOf(List.of(
+						com.example.receiptprocessor.data.states.Receipt.gotPoints(validUUID, receipt),
+						com.example.receiptprocessor.data.states.Receipt.idNotFound(validUUID),
+						Json.invalidID())).get();
+		return ResponseEntity.status(outcome.statusCode()).body(outcome.body());
 	}
 }

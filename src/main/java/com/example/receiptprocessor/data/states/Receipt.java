@@ -23,14 +23,15 @@ public class Receipt {
 	private Receipt() {
 		throw new IllegalStateException("Utility class");
 	}
-	public static Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>> created(Try<Set<ValidationMessage>> validationResultOrFailure) {
+	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
+	created(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
 						() -> validationResultOrFailure.isSuccess() && validationResultOrFailure.get().isEmpty(),
 						() -> new SimpleHTTPResponse(HttpStatus.CREATED, Map.of(MESSAGE, "created")));
 	}
 
 	public static SimpleHTTPResponse
-	mapJsonResultsToReceiptResponse(@NotNull Pair<String, String> validationOutcome) {
+	mapJsonResultsToReceiptResponse(@NotNull @org.jetbrains.annotations.NotNull Pair<String, String> validationOutcome) {
 		var details = Map.of(validationOutcome.getFirst(), validationOutcome.getSecond());
 		return Map.of(
 						INVALID_SCHEMA, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
@@ -40,4 +41,24 @@ public class Receipt {
 						MATCHED_SCHEMA, new SimpleHTTPResponse(HttpStatus.CREATED, details))
 						.get(validationOutcome.getFirst());
 	}
+
+	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
+	gotPoints(Boolean validUUID, com.example.receiptprocessor.data.entities.Receipt receipt) {
+		return Shorthand.makeLazyStatePair(
+						() -> validUUID && receipt != null,
+						() -> new SimpleHTTPResponse(HttpStatus.OK,
+										Map.of("points", "calcPoints(receipt)")));
+	}
+
+	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
+	idNotFound(Boolean validUUID) {
+		return Shorthand.makeLazyStatePair(
+						() -> validUUID,
+						() -> new SimpleHTTPResponse(HttpStatus.NOT_FOUND,
+										Map.of("error", "No receipt associated with provided id.")));
+	}
+
+
+
+
 }
