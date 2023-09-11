@@ -14,10 +14,14 @@ public class Item {
 	private UUID id;
 
 	@Column(name = "short_description")
-	private final String shortDescription;
+	private String shortDescription;
 
 	@Column(name = "price")
-	private final BigDecimal price;
+	private BigDecimal price;
+
+	public Item() {
+
+	}
 
 	public Item(String shortDescription, BigDecimal price) {
 		this.shortDescription = shortDescription;

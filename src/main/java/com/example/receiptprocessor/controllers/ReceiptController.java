@@ -1,6 +1,9 @@
 package com.example.receiptprocessor.controllers;
 
+import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
+import com.example.receiptprocessor.data.repositories.ItemRepository;
+import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
 import com.example.receiptprocessor.services.item.ItemWrite;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
@@ -42,10 +45,19 @@ public class ReceiptController {
 	private final ReceiptWrite receiptWrite;
 	@Autowired
 	private final ItemWrite itemWrite;
+	@Autowired
+	private final ItemRepository itemRead;
+	@Autowired
+	private final ReceiptRepository receiptRead;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
-	public ReceiptController(ReceiptWrite receiptService, ItemWrite itemWrite) {
+	public ReceiptController(ReceiptWrite receiptService,
+	                         ItemWrite itemWrite,
+	                         ItemRepository itemRead,
+	                         ReceiptRepository receiptRead) {
 		this.receiptWrite = receiptService;
 		this.itemWrite = itemWrite;
+		this.itemRead = itemRead;
+		this.receiptRead = receiptRead;
 	}
 
 	Lazy<Void> getReceiptQuery(JsonNode receipt) {
@@ -139,8 +151,9 @@ public class ReceiptController {
 		Stream<Lazy<Void>> receiptQueries = Stream.of(validReceipt? getReceiptQuery(receipt) : Lazy.of(() -> null));
 		var queriesToRunOutcome = validReceipt && validItems?
 						Stream.concat(itemQueries, receiptQueries) : Stream.of(Lazy.of(() -> null));
+		// todo: make connections
 		Stream<Lazy<Void>> queriesToRun = Objects.uncheckedCast(queriesToRunOutcome);
-		queriesToRun.forEach(Lazy::get);
+//		queriesToRun.forEach(Lazy::get);
 		var responseInfo = invalidData.isEmpty()?
 						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("message", "receipt stored!")) :
 						errorState(invalidData);
@@ -149,6 +162,16 @@ public class ReceiptController {
 	SimpleHTTPResponse errorState(@NotNull List<Pair<String, String>> invalidData) {
 		var errors = Map.of("errors", invalidData.toString());
 		return new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, errors);
+	}
+
+	@GetMapping("/all")
+	public ResponseEntity<List<Receipt>> listAllData() {
+		var allReceipts = receiptRead.findAll();
+//		List<Object> allItems = java.util.Collections.singletonList(itemRead.findAll());
+		return ResponseEntity.ok(allReceipts
+//						Collections.combine(List.of(allReceipts, allItems)).toList()
+						)
+						;
 	}
 
 	@GetMapping("/{id}/points")

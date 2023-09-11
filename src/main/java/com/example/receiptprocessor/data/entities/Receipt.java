@@ -15,9 +15,13 @@ public class Receipt {
 	@GeneratedValue
 	@Column(columnDefinition = "uuid")
 	private UUID id;
-	private final String retailer;
-	private final LocalDateTime purchaseDateTime;
-	private final BigDecimal total;
+	private String retailer;
+	private LocalDateTime purchaseDateTime;
+	private BigDecimal total;
+
+	public Receipt() {
+
+	}
 
 	public Receipt(String retailer, LocalDateTime purchaseDateTime, BigDecimal total) {
 		this.retailer = retailer;

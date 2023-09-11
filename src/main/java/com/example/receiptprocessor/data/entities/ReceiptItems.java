@@ -14,11 +14,15 @@ public class ReceiptItems {
 
 	@ManyToOne
 	@JoinColumn(name = "item_id")
-	private final Item item;
+	private Item item;
 
 	@ManyToOne
 	@JoinColumn(name = "receipt_id")
-	private final Receipt receipt;
+	private Receipt receipt;
+
+	public ReceiptItems() {
+
+	}
 
 	public ReceiptItems(Item item, Receipt receipt) {
 		this.item = item;
