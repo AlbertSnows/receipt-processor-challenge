@@ -1,6 +1,7 @@
 package com.example.receiptprocessor.controllers;
 
 import com.example.receiptprocessor.data.entities.Receipt;
+import com.example.receiptprocessor.data.entities.ReceiptItems;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.data.repositories.ItemRepository;
 import com.example.receiptprocessor.data.repositories.ReceiptItemsRepository;
@@ -170,9 +171,12 @@ public class ReceiptController {
 
 	@GetMapping("/all")
 	public ResponseEntity<List<String>> listAllData() {
-		var allReceipts = receiptRead.findAll().toString();
-		var allItems = itemRead.findAll().toString();
-		var allReadItems = receiptItemRepo.findAll().toString();
+		var allReceipts = receiptRead.findAll().stream()
+						.map(Receipt::getId).toList().toString();
+		var allItems = itemRead.findAll().stream()
+						.map(com.example.receiptprocessor.data.entities.Item::getId).toList().toString();
+		var allReadItems = receiptItemRepo.findAll().stream()
+						.map(ReceiptItems::getId).toList().toString();
 		return ResponseEntity.ok(List.of(
 						"Receipts: ", allReceipts, " | ",
 						"Items: ", allItems, " | ",

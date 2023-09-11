@@ -23,4 +23,8 @@ public class ReceiptItems {
 		this.item = item;
 		this.receipt = receipt;
 	}
+
+	public UUID getId() {
+		return this.id;
+	}
 }
