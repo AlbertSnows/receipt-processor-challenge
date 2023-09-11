@@ -190,7 +190,7 @@ public class ReceiptController {
 		var receiptID = validUUID? maybeUUID.get() : null;
 		var maybeReceipt = validUUID? receiptRead.findById(receiptID) : java.util.Optional.<Receipt>empty();
 		var receipt = maybeReceipt.orElse(null);
-		var getsertPoints = Lazy.of(() -> receiptWrite.calcPoints(receipt));
+		var getsertPoints = Lazy.of(() -> receiptWrite.getsertPoints(receipt));
 		var outcome = Collections.firstTrueStateOf(List.of(
 						com.example.receiptprocessor.data.states.Receipt.gotPoints(validUUID, receipt, getsertPoints),
 						com.example.receiptprocessor.data.states.Receipt.idNotFound(validUUID),
