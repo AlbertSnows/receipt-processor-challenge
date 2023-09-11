@@ -9,6 +9,7 @@ import com.example.receiptprocessor.data.repositories.ReceiptRepository;
 import com.example.receiptprocessor.data.states.Item;
 import com.example.receiptprocessor.data.states.Json;
 import com.example.receiptprocessor.services.item.ItemWrite;
+import com.example.receiptprocessor.services.points.PointRead;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
 import com.example.receiptprocessor.services.receipt_items.ReceiptItemWrites;
 import com.example.receiptprocessor.utility.Collections;
@@ -17,6 +18,7 @@ import com.example.receiptprocessor.utility.Validation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.vavr.Function0;
 import io.vavr.Function1;
 import io.vavr.Lazy;
 import io.vavr.control.Try;
@@ -57,19 +59,23 @@ public class ReceiptController {
 	private final ReceiptItemWrites receiptItemWrites;
 	@Autowired
 	private final ReceiptItemsRepository receiptItemRepo;
+	@Autowired
+	private final PointRead pointRead;
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	public ReceiptController(ReceiptWrite receiptService,
 	                         ItemWrite itemWrite,
 	                         ItemRepository itemRead,
 	                         ReceiptRepository receiptRead,
 	                         ReceiptItemWrites receiptItemWrites,
-	                         ReceiptItemsRepository receiptItemRepo) {
+	                         ReceiptItemsRepository receiptItemRepo,
+	                         PointRead pointRead) {
 		this.receiptWrite = receiptService;
 		this.itemWrite = itemWrite;
 		this.itemRead = itemRead;
 		this.receiptRead = receiptRead;
 		this.receiptItemWrites = receiptItemWrites;
 		this.receiptItemRepo = receiptItemRepo;
+		this.pointRead = pointRead;
 	}
 
 	Lazy<Receipt> getReceiptQuery(JsonNode receipt) {
@@ -190,11 +196,13 @@ public class ReceiptController {
 		var receiptID = validUUID? maybeUUID.get() : null;
 		var maybeReceipt = validUUID? receiptRead.findById(receiptID) : java.util.Optional.<Receipt>empty();
 		var receipt = maybeReceipt.orElse(null);
-		var getsertPoints = Lazy.of(() -> receiptWrite.getsertPoints(receipt));
+		var getPoints = Function0.of(() -> pointRead.findByReceipt(receipt)).memoized();
 		var outcome = Collections.firstTrueStateOf(List.of(
-						com.example.receiptprocessor.data.states.Receipt.gotPoints(validUUID, receipt, getsertPoints),
-						com.example.receiptprocessor.data.states.Receipt.idNotFound(validUUID),
-						Json.invalidID())).get();
+						Json.invalidID(validUUID),
+						com.example.receiptprocessor.data.states.Receipt.idNotFound(receipt),
+						com.example.receiptprocessor.data.states.Receipt.getPoints(getPoints),
+						com.example.receiptprocessor.data.states.Receipt.calculatePoints(getPoints, receipt)))
+						.get();
 		return ResponseEntity.status(outcome.statusCode()).body(outcome.body());
 	}
 }

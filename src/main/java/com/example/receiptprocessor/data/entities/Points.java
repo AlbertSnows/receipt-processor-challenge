@@ -14,6 +14,9 @@ public class Points {
 	@Column(name = "points")
 	private Integer points;
 
+	@OneToOne
+	private Receipt receipt;
+
 	public Points() {
 
 	}
@@ -24,5 +27,9 @@ public class Points {
 
 	public UUID getId() {
 		return this.id;
+	}
+
+	public Integer getPoints() {
+		return this.points;
 	}
 }

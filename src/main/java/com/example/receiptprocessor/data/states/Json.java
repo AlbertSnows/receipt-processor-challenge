@@ -27,9 +27,9 @@ public class Json {
 	}
 
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
-	invalidID() {
+	invalidID(boolean idExists) {
 		return Shorthand.makeLazyStatePair(
-						() -> true,
+						() -> !idExists,
 						() -> new SimpleHTTPResponse(HttpStatus.BAD_REQUEST,
 										Map.of("error", "Invalid ID")));
 	}

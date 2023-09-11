@@ -2,6 +2,7 @@ package com.example.receiptprocessor.services.receipt;
 
 import com.example.receiptprocessor.data.entities.Receipt;
 import com.example.receiptprocessor.data.repositories.ReceiptRepository;
+import com.example.receiptprocessor.services.points.PointRead;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +16,12 @@ import java.time.format.DateTimeFormatter;
 public class ReceiptWrite {
 		@Autowired
 		private final ReceiptRepository receiptRepository;
+		@Autowired
+		private final PointRead pointRead;
 
-		public ReceiptWrite(ReceiptRepository receiptRepository) {
+		public ReceiptWrite(ReceiptRepository receiptRepository, PointRead pointRead) {
 			this.receiptRepository = receiptRepository;
+			this.pointRead = pointRead;
 		}
 
 		public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
@@ -34,9 +38,9 @@ public class ReceiptWrite {
 			return receiptRepository.save(receiptEntity);
 		}
 
-	public Integer getsertPoints(Receipt receipt) {
+	public Integer calculatePoints(Receipt receipt) {
 		// get points if already exists
-
+//		var alreadyCalculated = point != null;
 
 		// receipt.retailer.count
 		// if total is round + 50
