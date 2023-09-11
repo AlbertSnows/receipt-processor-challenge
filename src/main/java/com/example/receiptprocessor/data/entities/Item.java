@@ -35,4 +35,12 @@ public class Item {
 	public UUID getId() {
 		return this.id;
 	}
+
+	public String getShortDescription() {
+		return this.shortDescription;
+	}
+
+	public BigDecimal getPrice() {
+		return this.price;
+	}
 }

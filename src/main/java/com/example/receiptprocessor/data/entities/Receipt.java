@@ -33,4 +33,15 @@ public class Receipt {
 		return this.id;
 	}
 
+	public String getRetailer() {
+		return this.retailer;
+	}
+
+	public BigDecimal getTotal() {
+		return this.total;
+	}
+
+	public LocalDateTime getPurchaseDateTime() {
+		return this.purchaseDateTime;
+	}
 }
