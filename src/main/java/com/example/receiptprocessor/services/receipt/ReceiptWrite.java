@@ -33,4 +33,9 @@ public class ReceiptWrite {
 		public Receipt recordReceipt(Receipt receiptEntity) {
 			return receiptRepository.save(receiptEntity);
 		}
+
+	public Integer calcPoints(Receipt receipt) {
+			//todo: ...
+			return 69;
+	}
 }

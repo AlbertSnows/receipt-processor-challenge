@@ -20,9 +20,6 @@ import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.ME
  * specifically working with our receipts data
  */
 public class Receipt {
-	private Receipt() {
-		throw new IllegalStateException("Utility class");
-	}
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	created(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
@@ -43,11 +40,11 @@ public class Receipt {
 	}
 
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
-	gotPoints(Boolean validUUID, com.example.receiptprocessor.data.entities.Receipt receipt) {
+	gotPoints(Boolean validUUID, com.example.receiptprocessor.data.entities.Receipt receipt, Lazy<Integer> getsertPoints) {
 		return Shorthand.makeLazyStatePair(
 						() -> validUUID && receipt != null,
 						() -> new SimpleHTTPResponse(HttpStatus.OK,
-										Map.of("points", "calcPoints(receipt)")));
+										Map.of("points", getsertPoints.get().toString())));
 	}
 
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>

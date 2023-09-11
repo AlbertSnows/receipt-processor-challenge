@@ -156,11 +156,11 @@ public class ReceiptController {
 						NEITHER_VALID, List.of(receiptOutcomes, itemOutcomes)));
 		List<Pair<String, String>> invalidData = Objects.uncheckedCast(invalidDataOutcome);
 		List<com.example.receiptprocessor.data.entities.Item> itemQueries = getItemQueries(receipt.get("items"));
-		Receipt receiptQueries = validReceipt? getReceiptQuery(receipt).get() : null;
+		Receipt receiptEntity = validReceipt? getReceiptQuery(receipt).get() : null;
 		var receiptItems =
-						receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptQueries).toList();
-		var responseInfo = invalidData.isEmpty()?
-						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("message", "receipt stored!")) :
+						receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptEntity).toList();
+		var responseInfo = receiptEntity != null?
+						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("id", receiptEntity.getId().toString())) :
 						errorState(invalidData);
 		return ResponseEntity.status(responseInfo.statusCode()).body(responseInfo.body());
 	}
@@ -190,8 +190,9 @@ public class ReceiptController {
 		var receiptID = validUUID? maybeUUID.get() : null;
 		var maybeReceipt = validUUID? receiptRead.findById(receiptID) : java.util.Optional.<Receipt>empty();
 		var receipt = maybeReceipt.orElse(null);
+		var getsertPoints = Lazy.of(() -> receiptWrite.calcPoints(receipt));
 		var outcome = Collections.firstTrueStateOf(List.of(
-						com.example.receiptprocessor.data.states.Receipt.gotPoints(validUUID, receipt),
+						com.example.receiptprocessor.data.states.Receipt.gotPoints(validUUID, receipt, getsertPoints),
 						com.example.receiptprocessor.data.states.Receipt.idNotFound(validUUID),
 						Json.invalidID())).get();
 		return ResponseEntity.status(outcome.statusCode()).body(outcome.body());
