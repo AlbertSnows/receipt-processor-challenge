@@ -22,7 +22,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'com.networknt:json-schema-validator:1.0.86'
 	implementation 'org.jetbrains:annotations:24.0.0'
-	implementation 'com.h2database:h2-mvstore:2.1.214'
+	implementation 'com.h2database:h2:2.1.212'
+//	implementation 'com.h2database:h2-mvstore:2.1.214'
 //	runtimeOnly 'org.postgresql:postgresql'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	// https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
