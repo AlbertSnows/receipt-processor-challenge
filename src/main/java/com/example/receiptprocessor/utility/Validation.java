@@ -20,15 +20,23 @@ public class Validation {
 		throw new IllegalStateException("Utility class");
 	}
 
+	/**
+	 * Curried function to validate json against a schema
+	 * @param jsonFile Path to schema location
+	 * @return A lazy evaluation of a state pair of Outcome Identifier -> Outcome Value
+	 * When trying to validation json against a schema from a file
+	 * there are multiple things that can go wrong (and only one way for it to go right)
+	 * As such, the return of this function represents one of all expected possible outcomes
+	 * that are listed at the bottom.
+	 * For more details on each state, refer to the docs for each function.
+	 */
 	@Contract(pure = true)
 	public static @NotNull Function1<JsonNode, Lazy<Pair<String, String>>>
 	validateJsonSchemaFrom(Path jsonFile) {
 		return jsonTree -> {
 			JsonSchemaFactory factory = JsonSchemaFactory.getInstance(SpecVersion.VersionFlag.V4);
-			var maybeSchema = Try.of(() -> {
-				var schemaString = Files.readString(jsonFile);
-				return factory.getSchema(schemaString);
-			});
+			var maybeSchema =
+							Try.of(() -> factory.getSchema(Files.readString(jsonFile)));
 			var maybeValidationResult = maybeSchema.flatMap(schema ->
 							Try.success(schema.validate(jsonTree)));
 			return Collections.firstTrueStateOf(List.of(

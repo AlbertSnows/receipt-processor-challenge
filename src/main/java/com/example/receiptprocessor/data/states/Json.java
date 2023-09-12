@@ -19,7 +19,7 @@ import static com.example.receiptprocessor.data.Constants.*;
 
 /**
  * This class encompasses, currently, all recognized states we could encounter when
- * specifically working with json
+ * specifically working with json for this project
  */
 public class Json {
 	private Json() {
@@ -33,14 +33,18 @@ public class Json {
 						() -> new SimpleHTTPResponse(HttpStatus.BAD_REQUEST,
 										Map.of("error", "Invalid ID")));
 	}
-
+	/**
+	 * Matches Schema -> there were no problems, happy path
+	 */
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	matchesSchema(@NotNull Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
 						() -> validationResultOrFailure.isSuccess() && validationResultOrFailure.get().isEmpty(),
 						() -> Pair.of(MATCHED_SCHEMA, "Valid json, yay!"));
 	}
-
+	/**
+	 * Invalid Schema -> json does not match schema
+	 */
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	invalidSchema(@NotNull Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
@@ -48,7 +52,9 @@ public class Json {
 						() -> Pair.of(INVALID_SCHEMA,
 										"Json doesn't match schema. Details: " + validationResultOrFailure.get().toString()));
 	}
-
+	/**
+	 * No Schema File -> could not find the file to validate against, this should not happen
+	 */
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	noSchemaFile(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
@@ -56,6 +62,9 @@ public class Json {
 						() -> Pair.of(NO_FILE, "Could not find file, could not build json schema"));
 	}
 
+	/**
+	 * Malformed -> could not parse json to validate
+	 */
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	malformed(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(
@@ -66,6 +75,9 @@ public class Json {
 						() -> Pair.of(MALFORMED_JSON, "Problem building tree, invalid json"));
 	}
 
+	/**
+	 * - Unknown Problem - catch all for all other problems that may not have been anticipated
+	 */
 	public static @NotNull Pair<Lazy<Boolean>, Lazy<Pair<String, String>>>
 	unknownProblem(Try<Set<ValidationMessage>> validationResultOrFailure) {
 		return Shorthand.makeLazyStatePair(

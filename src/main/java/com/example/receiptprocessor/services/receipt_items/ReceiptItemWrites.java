@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 public class ReceiptItemWrites {
 	@Autowired
 	private final ReceiptItemsRepository receiptItemsRepo;
-	private ReceiptItemWrites(ReceiptItemsRepository receiptItemsRepo) {
+	public ReceiptItemWrites(ReceiptItemsRepository receiptItemsRepo) {
 		this.receiptItemsRepo = receiptItemsRepo;
 	}
 	public Stream<ReceiptItems> saveReceiptItemConnections(@NotNull List<Item> items, @NotNull Receipt receipt) {

@@ -54,8 +54,6 @@ public class Receipt {
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	calculatePoints(Function0<Points> points, Lazy<Integer> calcPoints) {
 		//todo: reorginize state
-		//todo: move point calc to point write service
-		//todo: check that inner functions aren't eagerly evaluated
 		return Shorthand.makeLazyStatePair(
 						() -> points.get() == null,
 						() -> new SimpleHTTPResponse(HttpStatus.OK,
