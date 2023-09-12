@@ -18,7 +18,7 @@ public class ReceiptItemWrites {
 	private ReceiptItemWrites(ReceiptItemsRepository receiptItemsRepo) {
 		this.receiptItemsRepo = receiptItemsRepo;
 	}
-	public Stream<ReceiptItems> saveReceiptItemConnections(@NotNull List<Item> items, Receipt receipt) {
+	public Stream<ReceiptItems> saveReceiptItemConnections(@NotNull List<Item> items, @NotNull Receipt receipt) {
 		return items.stream()
 						.map(item ->  new ReceiptItems(item, receipt))
 						.map(receiptItemsRepo::save);
