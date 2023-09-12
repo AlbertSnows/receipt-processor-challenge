@@ -19,10 +19,6 @@ public class Item {
 	@Column(name = "price")
 	private BigDecimal price;
 
-	@ManyToOne
-	@JoinColumn(name = "receipt_id")
-	private Receipt receipt;
-
 	public Item() {
 
 	}

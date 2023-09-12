@@ -15,7 +15,6 @@ import com.example.receiptprocessor.services.points.PointRead;
 import com.example.receiptprocessor.services.receipt.ReceiptWrite;
 import com.example.receiptprocessor.services.receipt_items.ReceiptItemWrites;
 import com.example.receiptprocessor.utility.Collections;
-import com.example.receiptprocessor.utility.Objects;
 import com.example.receiptprocessor.utility.Validation;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,10 +35,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -159,7 +155,11 @@ public class ReceiptController {
 		return outcome.getFirst().equals(MATCHED_SCHEMA);
 	}
 
+	/**
+	 * @deprecated has weird casting behavior, generics are tough to work with
+	 */
 	@Contract(pure = true)
+	@Deprecated(since="sept 11", forRemoval = false)
 	public static <V> @NotNull Function1<Map<String, V>, V>
 	actOnProcessReceiptValidationOutcomes(boolean validReceipt, boolean validItems) {
 		return actions -> Collections.firstTrueEagerStateOf(List.of(
@@ -168,6 +168,7 @@ public class ReceiptController {
 						Pair.of(validItems, actions.get(ITEM_VALID)),
 						Pair.of(true, actions.get(NEITHER_VALID))));
 	}
+
 	@PostMapping("/process")
 	public ResponseEntity<Map<String, String>> recordReceipt(@RequestBody JsonNode receipt) {
 		var receiptOutcomes = validateReceipt(receipt);
@@ -175,29 +176,30 @@ public class ReceiptController {
 		var validReceipt = Boolean.TRUE.equals(isValid(receiptOutcomes));
 		var validItems = itemOutcomes.stream()
 						.noneMatch(itemOutcome -> Boolean.FALSE.equals(isValid(itemOutcome)));
-		var basedOnValidationOutcomes =
-						ReceiptController.actOnProcessReceiptValidationOutcomes(validReceipt, validItems);
-		var invalidDataOutcome = basedOnValidationOutcomes.apply(Map.of(
-						BOTH_VALID, List.of(),
-						RECEIPT_VALID, List.of(itemOutcomes),
-						ITEM_VALID, List.of(receiptOutcomes),
-						NEITHER_VALID, List.of(receiptOutcomes, itemOutcomes)));
-		List<Pair<String, String>> invalidData = Objects.uncheckedCast(invalidDataOutcome);
+		Stream<Pair<String, String>> allOutcomes = Stream.concat(
+						Stream.of(receiptOutcomes),
+						itemOutcomes.stream());
+		List<Pair<String, String>> invalidOutcomes = Collections.firstTrueEagerStateOf(List.of(
+						Pair.of(validReceipt && validItems, List.of()),
+						Pair.of(validReceipt, itemOutcomes),
+						Pair.of(validItems, List.of(receiptOutcomes)),
+						Pair.of(true, allOutcomes.toList())));
 
 		JsonNode receiptItemsJson = Optional.ofNullable(receipt.get("items")).orElseGet(objectMapper::nullNode);
 		var itemQueries = getItemQueries(receiptItemsJson);
 		Function0<Receipt> getReceiptEntity = validReceipt? getReceiptQuery(receipt).memoized() : Function0.of(() -> null);
-		var receiptEntity = invalidData.isEmpty()? getReceiptEntity.get() : null;
+		var receiptEntity = invalidOutcomes.isEmpty()? getReceiptEntity.get() : null;
 		var receiptItems = receiptEntity != null?
 						receiptItemWrites.saveReceiptItemConnections(itemQueries.map(Lazy::get).toList(), receiptEntity).toList() :
 						List.of();
 		var responseInfo = receiptEntity != null?
 						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("id", receiptEntity.getId().toString())) :
-						errorState(invalidData);
+						errorState(invalidOutcomes);
 		return ResponseEntity.status(responseInfo.statusCode()).body(responseInfo.body());
 	}
 	SimpleHTTPResponse errorState(@NotNull List<Pair<String, String>> invalidData) {
-		var errors = Map.of("errors", invalidData.toString());
+		var listOfStateStrings = invalidData.stream().map(Pair::toString).toList();
+		var errors = Map.of("errors", listOfStateStrings.toString());
 		return new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, errors);
 	}
 

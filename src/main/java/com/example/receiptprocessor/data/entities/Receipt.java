@@ -18,7 +18,6 @@ public class Receipt {
 	private String retailer;
 	private LocalDateTime purchaseDateTime;
 	private BigDecimal total;
-
 	public Receipt() {
 
 	}

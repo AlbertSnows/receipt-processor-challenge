@@ -19,9 +19,17 @@ public class Collections {
 						.flatMap(List::stream);
 	}
 
+	/**
+	 * @deprecated suspect, maybe just use stream?
+	 * causes issues if trying to add to immutable lists
+	 * streams seem to be better for this
+	 */
 	@Contract(pure = true)
+	@Deprecated(since = "sept 11", forRemoval = false)
 	public static <V> @NotNull Function<V, List<V>> add(List<V> list) {
 		return item -> {
+			var x = new java.util.ArrayList<>(List.of());
+			x.add(item);
 			list.add(item);
 			return list;
 		};
@@ -72,5 +80,13 @@ public class Collections {
 			}
 		}
 		throw new IllegalArgumentException("You must provide a default case as the last argument");
+	}
+
+	/**
+	 * @deprecated not necessary?
+	 */
+	public static @NotNull String makeStateString(@NotNull Pair<String, String> pair) {
+		var test = pair.toString();
+		return "State pair: (" + pair.getFirst() + ", " + pair.getSecond() + ")\n";
 	}
 }

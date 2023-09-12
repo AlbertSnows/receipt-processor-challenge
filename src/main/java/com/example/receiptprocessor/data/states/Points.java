@@ -11,6 +11,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import org.springframework.data.util.Pair;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
@@ -29,13 +30,14 @@ public class Points {
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<Integer>>
 	roundTotal(BigDecimal retailerPurchaseTotal) {
 		return Shorthand.makeLazyStatePair(
-						() -> retailerPurchaseTotal.scale() == 0,
+						() -> retailerPurchaseTotal.stripTrailingZeros().scale() == 0,
 						() -> 50);
 	}
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<Integer>>
 	quarterFractional(@NotNull BigDecimal retailerPurchaseTotal) {
-		Function0<Boolean> quarterFractional = () -> retailerPurchaseTotal.scale() == 0
-						|| retailerPurchaseTotal.remainder(new BigDecimal("0.25")).equals(BigDecimal.ZERO);
+		Function0<Boolean> quarterFractional = () -> retailerPurchaseTotal
+						.remainder(new BigDecimal("0.25"))
+						.compareTo(BigDecimal.ZERO) == 0;
 		return Shorthand.makeLazyStatePair(quarterFractional, () -> 25);
 	}
 
@@ -55,7 +57,8 @@ public class Points {
 		() -> !relevantItemPrices.isEmpty(),
 		() -> relevantItemPrices.stream()
 						.map(itemRecord -> itemRecord.price().multiply(BigDecimal.valueOf(0.2)))
-						.map(BigDecimal::scale)
+						.map(pointFraction -> pointFraction.setScale(0, RoundingMode.UP))
+						.map(BigDecimal::intValue)
 						.mapToInt(Integer::intValue)
 						.sum());
 	}

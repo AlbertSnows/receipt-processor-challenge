@@ -11,10 +11,10 @@ public class ReceiptItems {
 	@GeneratedValue
 	private UUID id;
 	@ManyToOne
-	@JoinColumn(name = "item_id")
+	@JoinColumn(name = "item_id", nullable = false)
 	private Item item;
 	@ManyToOne
-	@JoinColumn(name = "receipt_id")
+	@JoinColumn(name = "receipt_id", nullable = false)
 	private Receipt receipt;
 	public ReceiptItems() {
 
@@ -26,5 +26,11 @@ public class ReceiptItems {
 
 	public UUID getId() {
 		return this.id;
+	}
+	public Item getItem() {
+		return this.item;
+	}
+	public Receipt getReceipt() {
+		return this.receipt;
 	}
 }

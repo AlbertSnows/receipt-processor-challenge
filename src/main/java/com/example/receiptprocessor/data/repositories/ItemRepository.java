@@ -8,5 +8,4 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ItemRepository extends JpaRepository<com.example.receiptprocessor.data.entities.Item, UUID> {
-	List<Item> findAllByReceipt(Receipt receipt);
 }
