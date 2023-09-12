@@ -1,14 +1,8 @@
 version: '3'
 services:
   spring-app:
-    image: your-spring-app-image # Name your Docker image
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-    environment:
-      SPRING_PROFILES_ACTIVE: production # Set your Spring profile if needed
-  h2:
-    image: h2database/h2:latest
-    ports:
-      - "9092:9092"
-    environment:
-      - H2_OPTIONS=-ifNotExists # Optionally add H2 options for initialization
