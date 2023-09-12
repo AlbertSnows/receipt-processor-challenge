@@ -3,12 +3,15 @@ package com.example.receiptprocessor.services.item;
 import com.example.receiptprocessor.data.entities.Item;
 import com.example.receiptprocessor.data.repositories.ItemRepository;
 import com.fasterxml.jackson.databind.JsonNode;
+import io.vavr.Lazy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 @Service
 public class ItemWrite {
@@ -28,5 +31,11 @@ public class ItemWrite {
 
 	public Item save(Item item) {
 		return itemRepo.save(item);
+	}
+
+	public Stream<Lazy<Item>> getItemQueries(@NotNull JsonNode items) {
+		return StreamSupport.stream(items.spliterator(), true)
+						.map(ItemWrite::hydrate)
+						.map(itemEntity -> Lazy.of(() -> save(itemEntity)));
 	}
 }
