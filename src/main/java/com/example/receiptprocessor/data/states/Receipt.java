@@ -3,19 +3,14 @@ package com.example.receiptprocessor.data.states;
 import com.example.receiptprocessor.data.entities.Points;
 import com.example.receiptprocessor.data.records.SimpleHTTPResponse;
 import com.example.receiptprocessor.utility.Shorthand;
-import com.networknt.schema.ValidationMessage;
 import io.vavr.Function0;
 import io.vavr.Lazy;
-import io.vavr.control.Try;
-import jakarta.validation.constraints.NotNull;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.data.util.Pair;
 import org.springframework.http.HttpStatus;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import static com.example.receiptprocessor.data.Constants.*;
-import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.MESSAGE;
 
 /**
  * This class encompasses, currently, all recognized states we could encounter when
@@ -23,25 +18,7 @@ import static org.hibernate.validator.internal.metadata.core.ConstraintHelper.ME
  */
 public class Receipt {
 
-	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
-	created(Try<Set<ValidationMessage>> validationResultOrFailure) {
-		return Shorthand.makeLazyStatePair(
-						() -> validationResultOrFailure.isSuccess() && validationResultOrFailure.get().isEmpty(),
-						() -> new SimpleHTTPResponse(HttpStatus.CREATED, Map.of(MESSAGE, "created")));
-	}
-
-	public static SimpleHTTPResponse
-	mapJsonResultsToReceiptResponse(@NotNull @org.jetbrains.annotations.NotNull Pair<String, String> validationOutcome) {
-		var details = Map.of(validationOutcome.getFirst(), validationOutcome.getSecond());
-		return Map.of(
-						INVALID_SCHEMA, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
-						MALFORMED_JSON, new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, details),
-						NO_FILE, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
-						UNRECOGNIZED_PROBLEM, new SimpleHTTPResponse(HttpStatus.INTERNAL_SERVER_ERROR, details),
-						MATCHED_SCHEMA, new SimpleHTTPResponse(HttpStatus.CREATED, details))
-						.get(validationOutcome.getFirst());
-	}
-
+	// get already calculated points
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	getPoints(@org.jetbrains.annotations.NotNull Function0<Points> getPoints) {
 		var points = getPoints.get();
@@ -51,20 +28,28 @@ public class Receipt {
 										Map.of("points", points.getPoints().toString())));
 	}
 
+	// calc points for receipt
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	calculatePoints(Function0<Points> points, Lazy<Integer> calcPoints) {
-		//todo: reorginize state
 		return Shorthand.makeLazyStatePair(
 						() -> points.get() == null,
 						() -> new SimpleHTTPResponse(HttpStatus.OK,
 										Map.of("points", calcPoints.get().toString())));
 	}
 
+	// No receipt id
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<SimpleHTTPResponse>>
 	idNotFound(com.example.receiptprocessor.data.entities.Receipt receipt) {
 		return Shorthand.makeLazyStatePair(
 						() -> receipt == null,
 						() -> new SimpleHTTPResponse(HttpStatus.NOT_FOUND,
 										Map.of("error", "No receipt associated with provided id.")));
+	}
+
+	public static @NotNull SimpleHTTPResponse
+	errorState(@org.jetbrains.annotations.NotNull List<Pair<String, String>> invalidData) {
+		var listOfStateStrings = invalidData.stream().map(Pair::toString).toList();
+		var errors = Map.of("errors", listOfStateStrings.toString());
+		return new SimpleHTTPResponse(HttpStatus.BAD_REQUEST, errors);
 	}
 }
