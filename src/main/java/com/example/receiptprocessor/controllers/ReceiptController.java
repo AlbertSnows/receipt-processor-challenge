@@ -23,6 +23,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.vavr.Function0;
 import io.vavr.Function1;
 import io.vavr.Lazy;
+import io.vavr.control.Option;
 import io.vavr.control.Try;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +38,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import static com.example.receiptprocessor.data.Constants.MATCHED_SCHEMA;
@@ -86,16 +89,15 @@ public class ReceiptController {
 		this.pointRepo = pointRepo;
 	}
 
-	Lazy<Receipt> getReceiptQuery(JsonNode receipt) {
+	Function0<Receipt> getReceiptQuery(JsonNode receipt) {
 		var receiptEntity = ReceiptWrite.hydrate(receipt);
-		return Lazy.of(() -> receiptWrite.recordReceipt(receiptEntity));
+		return Function0.of(() -> receiptWrite.recordReceipt(receiptEntity));
 	}
 
-	  List<com.example.receiptprocessor.data.entities.Item> getItemQueries(@NotNull JsonNode items) {
+	  Stream<Lazy<com.example.receiptprocessor.data.entities.Item>> getItemQueries(@NotNull JsonNode items) {
 		 return StreamSupport.stream(items.spliterator(), true)
 						.map(ItemWrite::hydrate)
-						.map(itemWrite::save)
-						 .toList();
+						.map(itemEntity -> Lazy.of(() -> itemWrite.save(itemEntity)));
 	}
 
 	public Pair<String, String> validateReceipt(@RequestBody JsonNode receipt) {
@@ -103,14 +105,25 @@ public class ReceiptController {
 		return Validation.validateJsonSchemaFrom(jsonFile).apply(receipt).get();
 	}
 
-	public static Try<JsonNode> convertPriceToNumber(@NotNull JsonNode item) {
-		Try<ObjectNode> readTree = Try.of(() -> objectMapper.readTree(item.traverse()));
-		return readTree.flatMap(validItem -> {
-			var priceString = validItem.get("price").asText();
-			var dubiousPrice = Try.of(() -> new BigDecimal(priceString));
-			return dubiousPrice.map(priceAsNum -> validItem.put("price", priceAsNum));
-		});
+	@Contract(pure = true)
+	private static @NotNull Function1<JsonNode, Try<ObjectNode>> updatePriceNodeOrFail(ObjectNode jsonObject) {
+		return priceNode -> {
+			var priceString = priceNode.asText();
+			return Try.of(() -> new BigDecimal(priceString))
+							.map(priceAsNum -> jsonObject.put("price", priceAsNum));
+		};
+	}
 
+
+	private static Try<ObjectNode> getAndUpsertPriceOrFail(@NotNull ObjectNode jsonObject) {
+		var maybePriceJson = Option.of(jsonObject.get("price"))
+						.toTry(() -> new RuntimeException("No price given."));
+		return maybePriceJson.flatMap(ReceiptController.updatePriceNodeOrFail(jsonObject));
+	}
+
+	public static Try<ObjectNode> convertPriceToNumber(@NotNull JsonNode item) {
+		Try<ObjectNode> readTree = Try.of(() -> objectMapper.readTree(item.traverse()));
+		return readTree.flatMap(ReceiptController::getAndUpsertPriceOrFail);
 	}
 
 	public @NotNull Lazy<List<Pair<String, String>>> validateItems(Path file, @NotNull JsonNode items) {
@@ -157,10 +170,11 @@ public class ReceiptController {
 	}
 	@PostMapping("/process")
 	public ResponseEntity<Map<String, String>> recordReceipt(@RequestBody JsonNode receipt) {
-		Pair<String, String> receiptOutcomes = validateReceipt(receipt);
+		var receiptOutcomes = validateReceipt(receipt);
 		var itemOutcomes = validateItems(receipt);
 		var validReceipt = Boolean.TRUE.equals(isValid(receiptOutcomes));
-		var validItems = itemOutcomes.stream().noneMatch(itemOutcome -> Boolean.FALSE.equals(isValid(itemOutcome)));
+		var validItems = itemOutcomes.stream()
+						.noneMatch(itemOutcome -> Boolean.FALSE.equals(isValid(itemOutcome)));
 		var basedOnValidationOutcomes =
 						ReceiptController.actOnProcessReceiptValidationOutcomes(validReceipt, validItems);
 		var invalidDataOutcome = basedOnValidationOutcomes.apply(Map.of(
@@ -169,10 +183,14 @@ public class ReceiptController {
 						ITEM_VALID, List.of(receiptOutcomes),
 						NEITHER_VALID, List.of(receiptOutcomes, itemOutcomes)));
 		List<Pair<String, String>> invalidData = Objects.uncheckedCast(invalidDataOutcome);
-		List<com.example.receiptprocessor.data.entities.Item> itemQueries = getItemQueries(receipt.get("items"));
-		Receipt receiptEntity = validReceipt? getReceiptQuery(receipt).get() : null;
-		var receiptItems =
-						receiptItemWrites.saveReceiptItemConnections(itemQueries, receiptEntity).toList();
+
+		JsonNode receiptItemsJson = Optional.ofNullable(receipt.get("items")).orElseGet(objectMapper::nullNode);
+		var itemQueries = getItemQueries(receiptItemsJson);
+		Function0<Receipt> getReceiptEntity = validReceipt? getReceiptQuery(receipt).memoized() : Function0.of(() -> null);
+		var receiptEntity = invalidData.isEmpty()? getReceiptEntity.get() : null;
+		var receiptItems = receiptEntity != null?
+						receiptItemWrites.saveReceiptItemConnections(itemQueries.map(Lazy::get).toList(), receiptEntity).toList() :
+						List.of();
 		var responseInfo = receiptEntity != null?
 						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("id", receiptEntity.getId().toString())) :
 						errorState(invalidData);
