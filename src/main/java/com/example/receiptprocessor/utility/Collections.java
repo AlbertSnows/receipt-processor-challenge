@@ -25,11 +25,9 @@ public class Collections {
 	 * streams seem to be better for this
 	 */
 	@Contract(pure = true)
-	@Deprecated(since = "sept 11", forRemoval = false)
+	@Deprecated(since = "sept 11")
 	public static <V> @NotNull Function<V, List<V>> add(List<V> list) {
 		return item -> {
-			var x = new java.util.ArrayList<>(List.of());
-			x.add(item);
 			list.add(item);
 			return list;
 		};
@@ -85,8 +83,8 @@ public class Collections {
 	/**
 	 * @deprecated not necessary?
 	 */
+	@Deprecated(since = "sept 11")
 	public static @NotNull String makeStateString(@NotNull Pair<String, String> pair) {
-		var test = pair.toString();
 		return "State pair: (" + pair.getFirst() + ", " + pair.getSecond() + ")\n";
 	}
 }

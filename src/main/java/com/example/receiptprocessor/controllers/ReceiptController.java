@@ -159,7 +159,7 @@ public class ReceiptController {
 	 * @deprecated has weird casting behavior, generics are tough to work with
 	 */
 	@Contract(pure = true)
-	@Deprecated(since="sept 11", forRemoval = false)
+	@Deprecated(since="sept 11")
 	public static <V> @NotNull Function1<Map<String, V>, V>
 	actOnProcessReceiptValidationOutcomes(boolean validReceipt, boolean validItems) {
 		return actions -> Collections.firstTrueEagerStateOf(List.of(
