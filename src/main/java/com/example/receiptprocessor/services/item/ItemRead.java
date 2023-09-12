@@ -82,7 +82,7 @@ public class ItemRead {
 	}
 
 	public List<Pair<String, String>> tryValidatingItems(@RequestBody @NotNull JsonNode receipt) {
-		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/item.json");
+		var jsonFile = Paths.get("src/main/resources/schemas/item.json");
 		var items = receipt.get("items");
 		return Collections.firstTrueEagerStateOf(List.of(
 						Pair.of(items != null, validateItems(jsonFile, (items != null) ? items : objectMapper.createObjectNode())),

@@ -39,7 +39,7 @@ public class ReceiptRead {
 	}
 
 	public Pair<String, String> validateReceipt(@RequestBody JsonNode receipt) {
-		var jsonFile = Paths.get("src/main/java/com/example/receiptprocessor/data/schemas/receipt.json");
+		var jsonFile = Paths.get("src/main/resources/schemas/receipt.json");
 		return Validation.validateJsonSchemaFrom(jsonFile).apply(receipt).get();
 	}
 
