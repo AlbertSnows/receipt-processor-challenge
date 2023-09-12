@@ -48,12 +48,11 @@ public class ReceiptWrite {
 
 	public Integer calculatePoints(Receipt receipt) {
 		var receiptItems = itemRead.findAll(receipt);
-		//todo: we don't currently check if total of receipt matches item
 		var possiblePointStates =
 						Points.possibleStatesForReceiptPoints(receipt, receiptItems);
 		var relevantPointStates = possiblePointStates.stream()
-						.filter(state -> state.getFirst().get());
-		var totalPoints = relevantPointStates
+						.filter(state -> state.getFirst().get()).toList();
+		var totalPoints = relevantPointStates.stream()
 						.map(state -> state.getSecond().get())
 						.mapToInt(Integer::intValue)// returns an int
 						.sum();

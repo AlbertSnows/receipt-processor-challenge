@@ -22,7 +22,7 @@ public class ItemWrite {
 	@Contract("_ -> new")
 	public static @NotNull Item hydrate(@NotNull JsonNode item) {
 		return new com.example.receiptprocessor.data.entities.Item(
-						item.get("shortDescription").asText(),
+						item.get("shortDescription").asText().trim(),
 						new BigDecimal(item.get("price").asText()));
 	}
 

@@ -49,13 +49,13 @@ public class Points {
 	}
 	public static @org.jetbrains.annotations.NotNull Pair<Lazy<Boolean>, Lazy<Integer>>
 	itemPricePointsFromItemDescription(@NotNull List<Item> receiptItems) {
-		//todo: pretrim descriptions
 		var relevantItemPrices = receiptItems.stream()
-					.map(item -> new ItemDescLengthAndPrice(item.getShortDescription().length(), item.getPrice()))
+					.map(item -> new ItemDescLengthAndPrice(item.getShortDescription().length(), item.getPrice())).toList();
+		var filteredItemPrices = relevantItemPrices.stream()
 					.filter(itemRecord -> itemRecord.length() % 3 == 0).toList();
 		return Shorthand.makeLazyStatePair(
-		() -> !relevantItemPrices.isEmpty(),
-		() -> relevantItemPrices.stream()
+		() -> !filteredItemPrices.isEmpty(),
+		() -> filteredItemPrices.stream()
 						.map(itemRecord -> itemRecord.price().multiply(BigDecimal.valueOf(0.2)))
 						.map(pointFraction -> pointFraction.setScale(0, RoundingMode.UP))
 						.map(BigDecimal::intValue)
