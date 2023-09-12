@@ -27,4 +27,9 @@ take more work to get set up
 Every situation has a state and an outcome.
 Why not also a unique identifier?
 To solve this assessment, I ended up not needing to use FSM, but they do seem like a more robust, long term solution via
-easy access to unique (hashable?) state identifiers. Might be worth checking out. 
+easy access to unique (hashable?) state identifiers. Might be worth checking out.
+
+## Documentation
+
+I need to add a swagger/open api interface
+at some point.
