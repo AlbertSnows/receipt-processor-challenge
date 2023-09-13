@@ -29,6 +29,11 @@ Why not also a unique identifier?
 To solve this assessment, I ended up not needing to use FSM, but they do seem like a more robust, long term solution via
 easy access to unique (hashable?) state identifiers. Might be worth checking out.
 
+### FirstStateOF
+
+Currently there's a Collections function that gets the first true state out of a list. Is that necessary? Java has
+streams, and anyMatch may be a viable alternative. Or something similar...
+
 ## Documentation
 
 I need to add a swagger/open api interface

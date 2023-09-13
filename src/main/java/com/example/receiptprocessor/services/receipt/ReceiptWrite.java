@@ -35,7 +35,11 @@ public class ReceiptWrite {
 		this.receiptItemWrites = receiptItemWrite;
 	}
 
-	public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
+	/**
+	 * @param receipt NOTE: assumes you've already validated the json node
+	 *                If you haven't, this will likely throw an exception
+	 */
+	public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrateJson(@NotNull JsonNode receipt) {
 		var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 		var date = receipt.get("purchaseDate").asText();
 		var time = receipt.get("purchaseTime").asText();
@@ -60,7 +64,7 @@ public class ReceiptWrite {
 	}
 
 	Function0<Receipt> getReceiptQuery(JsonNode receipt) {
-		var receiptEntity = ReceiptWrite.hydrate(receipt);
+		var receiptEntity = ReceiptWrite.hydrateJson(receipt);
 		return Function0.of(() -> recordReceipt(receiptEntity));
 	}
 }

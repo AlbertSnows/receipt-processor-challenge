@@ -25,7 +25,7 @@ public class Receipt {
 		return Shorthand.makeLazyStatePair(
 						() -> points != null,
 						() -> new SimpleHTTPResponse(HttpStatus.OK,
-										Map.of("points", points.getPoints().toString())));
+										Map.of("points", points.getTotalPointsForReceipt().toString())));
 	}
 
 	// calc points for receipt

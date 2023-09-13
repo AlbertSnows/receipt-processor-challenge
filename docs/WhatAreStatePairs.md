@@ -1,4 +1,5 @@
 // todo
+//todo: make complex illustration of if-else-if
 
 * (L)eft is a boolean
     * (R)ight is any associated value that match all other R's in the list

@@ -41,7 +41,7 @@ public class ItemRead {
 	}
 
 	@Contract(pure = true)
-	private static @NotNull Function1<JsonNode, Try<ObjectNode>> updatePriceNodeOrFail(ObjectNode jsonObject) {
+	public static @NotNull Function1<JsonNode, Try<ObjectNode>> updatePriceNodeOrFail(ObjectNode jsonObject) {
 		return priceNode -> {
 			var priceString = priceNode.asText();
 			return Try.of(() -> new BigDecimal(priceString))
@@ -60,7 +60,7 @@ public class ItemRead {
 		return readTree.flatMap(ItemRead::getAndUpsertPriceOrFail);
 	}
 
-	public @NotNull Lazy<List<Pair<String, String>>> validateItems(Path file, @NotNull JsonNode items) {
+	public static @NotNull Lazy<List<Pair<String, String>>> validateItems(Path file, @NotNull JsonNode items) {
 		var validateItem = Validation.validateJsonSchemaFrom(file);
 		var conversionOutcomes = StreamSupport
 						.stream(items.spliterator(), true)
@@ -68,8 +68,8 @@ public class ItemRead {
 		var castingFailures = conversionOutcomes.stream()
 						.filter(Try::isFailure).map(Try::getCause).toList();
 		var successCases = conversionOutcomes.stream()
-						.filter(Try::isSuccess).map(Try::get);
-		var validationFailures = successCases
+						.filter(Try::isSuccess).map(Try::get).toList();
+		var validationFailures = successCases.stream()
 						.map(validateItem)
 						.map(Lazy::get)
 						.toList();
