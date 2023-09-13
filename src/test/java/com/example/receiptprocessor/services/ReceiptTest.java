@@ -1,6 +1,6 @@
 package com.example.receiptprocessor.services;
 
-import com.example.receiptprocessor.services.receipt.ReceiptWrite;
+import com.example.receiptprocessor.services.receipt.ReceiptRead;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.vavr.control.Try;
@@ -32,9 +32,9 @@ class ReceiptTest {
 						"}";
 		var objMapper = new ObjectMapper();
 		var testJsonAsNode = objMapper.readTree(json);
-		var hydrateGoodJson = Try.of(() -> ReceiptWrite.hydrateJson(testJsonAsNode));
+		var hydrateGoodJson = Try.of(() -> ReceiptRead.hydrateJson(testJsonAsNode));
 		assertThat(hydrateGoodJson.isSuccess()).isTrue();
-		var hydrateBadJson = Try.of(() -> ReceiptWrite.hydrateJson(objMapper.nullNode()));
+		var hydrateBadJson = Try.of(() -> ReceiptRead.hydrateJson(objMapper.nullNode()));
 		assertThat(hydrateBadJson.isFailure()).isTrue();
 	}
 }

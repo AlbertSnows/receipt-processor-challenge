@@ -28,6 +28,21 @@ public class ReceiptRead {
 		this.receiptRepository = receiptRepository;
 	}
 
+
+	/**
+	 * @param receipt NOTE: assumes you've already validated the json node
+	 *                If you haven't, this will likely throw an exception
+	 */
+	public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrateJson(@NotNull JsonNode receipt) {
+		var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+		var date = receipt.get("purchaseDate").asText();
+		var time = receipt.get("purchaseTime").asText();
+		return new com.example.receiptprocessor.data.entities.Receipt(
+						receipt.get("retailer").asText(),
+						LocalDateTime.parse(date + " " + time, dateFormatter),
+						new BigDecimal(receipt.get("total").asText()));
+	}
+
 	public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrate(@NotNull JsonNode receipt) {
 		var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 		var date = receipt.get("purchaseDate").asText();

@@ -12,9 +12,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 
 @Service
@@ -35,20 +32,6 @@ public class ReceiptWrite {
 		this.receiptItemWrites = receiptItemWrite;
 	}
 
-	/**
-	 * @param receipt NOTE: assumes you've already validated the json node
-	 *                If you haven't, this will likely throw an exception
-	 */
-	public static com.example.receiptprocessor.data.entities.@NotNull Receipt hydrateJson(@NotNull JsonNode receipt) {
-		var dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-		var date = receipt.get("purchaseDate").asText();
-		var time = receipt.get("purchaseTime").asText();
-		return new com.example.receiptprocessor.data.entities.Receipt(
-						receipt.get("retailer").asText(),
-						LocalDateTime.parse(date + " " + time, dateFormatter),
-						new BigDecimal(receipt.get("total").asText()));
-	}
-
 	public Receipt recordReceipt(Receipt receiptEntity) {
 		return receiptRepository.save(receiptEntity);
 	}
@@ -64,7 +47,7 @@ public class ReceiptWrite {
 	}
 
 	Function0<Receipt> getReceiptQuery(JsonNode receipt) {
-		var receiptEntity = ReceiptWrite.hydrateJson(receipt);
+		var receiptEntity = ReceiptRead.hydrateJson(receipt);
 		return Function0.of(() -> recordReceipt(receiptEntity));
 	}
 }
