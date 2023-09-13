@@ -15,6 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -44,10 +45,10 @@ public class PointWrite {
 						com.example.receiptprocessor.data.states.Points.possibleStatesForReceiptPoints(receipt, receiptItems);
 		var relevantPointStates = possiblePointStates.stream()
 						.filter(state -> state.getFirst().get()).toList();
-		return relevantPointStates.stream()
+		var pointsPerFactor = relevantPointStates.stream()
 						.map(state -> state.getSecond().get())
-						.mapToInt(Integer::intValue)// returns an int
-						.sum();
+						.mapToInt(Integer::intValue).toArray();
+		return Arrays.stream(pointsPerFactor).sum();
 	}
 
 	public void save(Points points) {

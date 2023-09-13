@@ -29,7 +29,9 @@ public class Points {
 	retailerNameCount(Receipt receipt) {
 		return Shorthand.makeLazyStatePair(
 						() -> receipt != null,
-						() -> receipt.getRetailer().length());
+						() -> receipt.getRetailer()
+										.replaceAll("[^a-zA-Z0-9]", "") // alphanumeric only
+										.length());
 	}
 
 	/**
