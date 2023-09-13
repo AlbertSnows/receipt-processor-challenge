@@ -1,43 +1,51 @@
 package com.example.receiptprocessor.controller;
 
 import com.example.receiptprocessor.controllers.ReceiptController;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.UUID;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+// ref -> https://docs.spring.io/spring-boot/docs/1.5.2.RELEASE/reference/html/boot-features-testing.html
+//@WebMvcTest(ReceiptController.class)
 @SpringBootTest
+//@AutoConfigureMockMvc
 class ReceiptControllerTest {
+	//	@Autowired
+//	private MockMvc mockMvc;
 	@Autowired
 	private ReceiptController controller;
 
 	@Test
-	void recordReceiptTest(@RequestBody JsonNode receipt) {
-//		var receiptOutcomes = receiptRead.validateReceipt(receipt);
-//		var itemOutcomes = itemRead.tryValidatingItems(receipt);
-//		var validReceipt = Boolean.TRUE.equals(matchedSchema(receiptOutcomes));
-//		var validItems = itemOutcomes.stream()
-//						.noneMatch(itemOutcome -> Boolean.FALSE.equals(matchedSchema(itemOutcome)));
-//		Stream<Pair<String, String>> allOutcomes = Stream.concat(
-//						Stream.of(receiptOutcomes),
-//						itemOutcomes.stream());
-//		List<Pair<String, String>> invalidOutcomes = Collections.firstTrueEagerStateOf(List.of(
-//						Pair.of(validReceipt && validItems, List.of()),
-//						Pair.of(validReceipt, itemOutcomes),
-//						Pair.of(validItems, List.of(receiptOutcomes)),
-//						Pair.of(true, allOutcomes.toList())));
-//		var canSave = invalidOutcomes.isEmpty();
-//		var receiptId = canSave ? receiptWrite.runProcessQueries(receipt) : null;
-//		var responseInfo = receiptId != null ?
-//						new SimpleHTTPResponse(HttpStatus.CREATED, Map.of("id", receiptId)) :
-//						com.example.receiptprocessor.data.states.Receipt.errorState(invalidOutcomes);
-//		return ResponseEntity.status(responseInfo.statusCode()).body(responseInfo.body());
+	void recordReceiptTest() throws Exception {
+		var objectMapper = new ObjectMapper();
+		var goodJson = "{" +
+						"\"retailer\": \"Target\"," +
+						"\"purchaseDate\": \"2022-01-02\"," +
+						"\"purchaseTime\": \"13:13\"," +
+						"\"total\": \"1.25\"" + "," +
+						"\"items\": [" +
+						"{\"shortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}" +
+						"]" + "}";
+		var goodJsonNode = objectMapper.readTree(goodJson);
+		var goodOutcome = controller.recordReceipt(goodJsonNode);
+		assertThat(goodOutcome.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+		var badJson = "{" +
+						"\"rtailer\": \"Target\"," +
+						"\"purchaseDate\": \"2022-01-02\"," +
+						"\"purchaseTime\": \"13:13\"," +
+						"\"total\": \"1.25\"" + "," +
+						"\"items\": [" +
+						"{\"sortDescription\": \"Pepsi - 12-oz\", \"price\": \"1.25\"}" +
+						"]" + "}";
+		var badJsonNode = objectMapper.readTree(badJson);
+		var badOutcome = controller.recordReceipt(badJsonNode);
+		assertThat(badOutcome.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
 	}
 
 	@Test
