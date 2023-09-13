@@ -14,7 +14,6 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @SpringBootTest
 class ItemTest {
-	//todo: go write down accomplishments cv
 	@Test
 	void updatePriceNodeOrFailTest() throws JsonProcessingException {
 		var objectMapper = new ObjectMapper();
