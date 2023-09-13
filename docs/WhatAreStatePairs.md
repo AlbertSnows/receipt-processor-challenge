@@ -128,13 +128,47 @@ The same can be said for lists too. Terms & Conditions are a giant list of rules
 Ok, now that we're at the end, let me show you how I dealt with this in java. Java doesn't have pattern matching. [Scala does,](https://docs.scala-lang.org/tour/pattern-matching.html) but as neat as it looks I've never used it nor do have I met anyone who has either. So how do I accomplish this in Java? 
 
 State pairs. My best guess so far is state pairs. What are state pairs? ***State pairs are a specific kind of tuple.*** That's it. They specifically take the form 
-Pair<Boolean, O> where the left side boolean represents whether or not you're in that state and O = outcome and represents whatever you want to do in that stat. What does that look like? Well, if I were to implement the example question 3, it would look something like this. 
+Pair<Boolean, O> where the left side boolean represents whether or not you're in that state and O = outcome and represents whatever you want to do in that state. What does that look like? Well, if I were to implement the example question 3, it would look something like this. 
 
+```java
+List.of(Pair.of(age >= 18 && isStudent && hasSavings, List.of("adult","student", "savings")),
+        Pair.of(age >= 18 && isStudent && !hasSavings, List.of("adult", "student", "no savings")),
+        Pair.of(age >= 18 && !isStudent && hasJob && hasSavings, List.of("adult", "job", "savings")),
+        Pair.of(age >= 18 && !isStudent && hasJob && !hasSavings, List.of("adult", "job", "no savings")),
+        Pair.of(age >= 18 && !isStudent && !hasJob, List.of("adult", "no job")),
+        Pair.of(age < 18, "minor"));
+```
 
+I put a list of keywords in the right side, but keep in mind you can put ***anything*** in there. In Question 3 we were logging info in a bunch of places. Wouldn't it be nice if, instead of having to write `System.out.println("blahblahblah")` every time you enter a relevant scope you could just ***describe*** what states are relevant to which messages, and then just iterate over a loop where you println every message? Let me show you what I mean. 
 
-* (L)eft is a boolean
-    * (R)ight is any associated value that match all other R's in the list
-    * L is meant to represent application state; a possible situation your code can be in
-    * R is meant to encompass what you want to accomplish *if* L were true
-    * As such, P represents pairs of state => value relationships such that
-    * @return is represented by R, the value you want when L is *true*
+Suppose we're in the first case. 
+
+`age >= 18 && isStudent && hasSavings`
+
+This has three associated actions.
+
+```java 
+System.out.println("You are an adult.");
+System.out.println("You are a student.");
+System.out.println("You have savings as a student.");
+```
+
+Now suppose we make a pair instead. 
+
+```java
+Pair.of(age >= 18 && isStudent && hasSavings, 
+        List.of("You are an adult",
+                "You are a student",
+                "You have savings as a student"));
+``` 
+
+Now if I can find some way to check the left side of the tuple to see if it's true, then I get the right side and iterate over it. 
+
+```java 
+for(String whatAmI : currentState.getSecond()) {
+  System.out.println(whatAmI);
+}
+```
+Or you can just use streams in Java, those are cool. 
+
+I have functions such as `firstTrueStateOf` in this repo that get `currentState` for us. Once you understand what state pairs are doing, I think the rest falls into place. As such, I'm going to stop here. There are many more things to talk about, such as laziness and memoization for optimization, but while some of that was implemented for this project, it's outside the scope of this writeup. Thanks for reading. 
