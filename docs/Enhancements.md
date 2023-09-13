@@ -31,10 +31,10 @@ easy access to unique (hashable?) state identifiers. Might be worth checking out
 
 ### FirstStateOF
 
-Currently there's a Collections function that gets the first true state out of a list. Is that necessary? Java has
+Currently, there's a Collections function that gets the first true state out of a list. Is that necessary? Java has
 streams, and anyMatch may be a viable alternative. Or something similar...
 
 ## Documentation
 
-I need to add a swagger/open api interface
+I should add a swagger/open api interface
 at some point.
