@@ -128,7 +128,7 @@ with on a day-to-day basis. This can be summarized by three fundamental question
     How do we identify that information?
     How do we change that information?
 
-In most codebases I've worked in, Question 3 from earlier tends to be the focus of my daily tasks. It's not terrible, but
+In most codebases I've worked in, Question 3 from earlier tends to be the kind of code I work with on a daily basis. It's not terrible, but
 it's not ideal either. You do (sort of) get used to it, though. It is ***the*** conventional way to handle control flow 
 in our programs, after all. On a small scale, it works well. Question 1 was easy; it's fairly readable and not too complex.
 However, on larger scales, things can quickly become unwieldy.
@@ -156,7 +156,7 @@ a lot of stuff, but the manner in which it's conveyed never extends beyond showi
 scenarios. Unless you start treating if-else-if like a list by 
 [flattening](https://www.refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html) it, not only do if 
 statements grow linearly, but they also expand ***horizontally***, leading to a phenomenon lovingly referred to in our 
-community as the [flattening](https://www.refactoring.com/catalog/replaceNestedConditionalWithGuardClauses.html). It 
+community as [the pyramid of doom](https://en.wikipedia.org/wiki/Pyramid_of_doom_(programming)). It 
 becomes a two-dimensional problem.
 
 Now that we're at the end, let me show you how I dealt with this in Java. Java doesn't have pattern matching. 
