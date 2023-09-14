@@ -19,3 +19,15 @@ If you can navigate to
 [localhost:8080/entry](localhost:8080/entry). If you get a json response, the app should be running.
 
 For other ways to run this application, refer to the [HowToRun](./docs/HowToRun.md) docs.
+
+## Gradle Error
+
+If you get an error related to gradle in the form
+
+`#10 0.310 /bin/sh: 1: ./gradlew: not found`
+
+apparently this is a carriage return quirk between unix and windows
+converting the gradle file to LF return time *should* fix the issue. 
+
+e.g. 
+https://stackoverflow.com/a/72360107
