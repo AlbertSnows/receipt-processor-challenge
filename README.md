@@ -5,7 +5,7 @@ This is a project that ingests receipt data and performs calculations to determi
 For more info about the instructions,
 go [here](./docs/Instructions.md)
 
-The docs also contain more documentation about various design choices for this application.
+The docs also contain more documentation about various design choices for this application, including the creation of a concept called [State Pairs](./docs/WhatAreStatePairs.md); a primitive rule engine.
 
 ## How to run
 
